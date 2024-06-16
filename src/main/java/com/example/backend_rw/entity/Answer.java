@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class Answer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Integer id;
 
     @Column(nullable = false, length = 200)
     private String content;
