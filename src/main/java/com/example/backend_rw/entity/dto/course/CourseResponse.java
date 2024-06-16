@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Setter
@@ -37,7 +37,7 @@ public class CourseResponse {
     private int studentCount;
 
     @JsonProperty("published_at")
-    private Date publishedAt;
+    private Instant publishedAt;
 
     @JsonProperty("is_enabled")
     private boolean isEnabled;

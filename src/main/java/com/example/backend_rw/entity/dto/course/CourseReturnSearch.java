@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Setter
 @Getter
@@ -28,7 +28,7 @@ public class CourseReturnSearch {
     private boolean isPublished;
 
     @JsonProperty("published_at")
-    private Date publishedAt;
+    private Instant publishedAt;
 
     @JsonProperty("average_review")
     private double averageReview;

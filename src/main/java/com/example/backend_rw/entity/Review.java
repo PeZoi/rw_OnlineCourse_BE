@@ -3,7 +3,7 @@ package com.example.backend_rw.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -23,7 +23,7 @@ public class Review {
     private int rating;
 
     @Column(name = "review_time", nullable = false)
-    private Date reviewTime;
+    private Instant reviewTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")

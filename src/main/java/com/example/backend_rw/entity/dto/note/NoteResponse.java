@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalTime;
-import java.util.Date;
+import java.time.Instant;
 
 @Setter
 @Getter
@@ -23,7 +23,7 @@ public class NoteResponse {
     private LocalTime currentTime;
 
     @JsonProperty("created_at")
-    private Date createdAt;
+    private Instant createdAt;
 
     @JsonProperty("lesson_id")
     private Integer lessonId;

@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Setter
 @Getter
@@ -17,7 +17,7 @@ public class OrderResponse {
     private Integer id;
 
     @JsonProperty("created_time")
-    private Date createdTime;
+    private Instant createdTime;
 
     @JsonProperty("total_price")
     private int totalPrice;

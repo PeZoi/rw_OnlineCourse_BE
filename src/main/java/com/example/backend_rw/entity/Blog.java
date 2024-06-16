@@ -3,7 +3,7 @@ package com.example.backend_rw.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Data
 @Entity
@@ -28,7 +28,7 @@ public class Blog {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    private Date createdAt;
+    private Instant createdAt;
 
     private int view;
 

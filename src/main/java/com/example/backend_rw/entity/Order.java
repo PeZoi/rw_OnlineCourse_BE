@@ -3,7 +3,7 @@ package com.example.backend_rw.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -18,7 +18,7 @@ public class Order {
     private long id;
 
     @Column(name = "created_time", nullable = false)
-    private Date createdTime;
+    private Instant createdTime;
 
     @Column(name = "total_price", nullable = false)
     private int totalPrice;
@@ -31,7 +31,7 @@ public class Order {
     @JoinColumn(name = "course_id")
     private Courses courses;
 
-    public Order(Integer id, Date createdTime, int totalPrice) {
+    public Order(Integer id, Instant createdTime, int totalPrice) {
         this.id = id;
         this.createdTime = createdTime;
         this.totalPrice = totalPrice;

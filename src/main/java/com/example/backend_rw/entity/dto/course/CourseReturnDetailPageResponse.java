@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalTime;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Setter
@@ -27,7 +27,7 @@ public class CourseReturnDetailPageResponse {
     private String description;
 
     @JsonProperty("published_at")
-    private Date publishedAt;
+    private Instant publishedAt;
 
     private int price;
 

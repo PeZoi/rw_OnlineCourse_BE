@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -18,7 +18,7 @@ public class Certificate {
     private long id;
 
     @Column(name = "achieved_time", nullable = false)
-    private Date achievedTime;
+    private Instant achievedTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")

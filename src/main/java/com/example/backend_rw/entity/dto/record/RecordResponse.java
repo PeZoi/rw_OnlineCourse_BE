@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Setter
 @Getter
@@ -28,7 +28,7 @@ public class RecordResponse {
     private Integer contestId;
 
     @JsonProperty("joined_at")
-    private Date joinedAt;
+    private Instant joinedAt;
 
     private float grade;
 

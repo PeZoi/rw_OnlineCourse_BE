@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -24,7 +24,7 @@ public class Lesson {
     @Enumerated(EnumType.STRING)
     private LessonType lessonType;
 
-    private Date createdAt;
+    private Instant createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chapter_id")

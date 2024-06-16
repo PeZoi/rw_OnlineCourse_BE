@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -38,7 +38,7 @@ public class User {
     private String password;
 
     @Column(name = "created_time", nullable = false)
-    private Date createdTime;
+    private Instant createdTime;
 
     private boolean enabled;
 

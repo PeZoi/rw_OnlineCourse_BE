@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Setter
 @Getter
@@ -30,7 +30,7 @@ public class UserResponse {
     private String photo;
 
     @JsonProperty("created_time")
-    private Date createdTime;
+    private Instant createdTime;
 
     private boolean enabled;
 

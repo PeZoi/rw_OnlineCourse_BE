@@ -3,7 +3,7 @@ package com.example.backend_rw.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,7 +22,7 @@ public class QA {
     private String content;
 
     @Column(nullable = false, name = "created_at")
-    private Date createdAt;
+    private Instant createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id")

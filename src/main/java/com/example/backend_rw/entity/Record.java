@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +28,7 @@ public class Record {
     private Contest contest;
 
     @Column(nullable = false, name = "joined_at")
-    private Date joinedAt;
+    private Instant joinedAt;
 
     private float grade;
 

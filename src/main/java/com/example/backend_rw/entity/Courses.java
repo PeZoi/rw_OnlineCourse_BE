@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,7 +45,7 @@ public class Courses {
     private int studentCount;
 
     @Column(name = "published_at")
-    private Date publishedAt;
+    private Instant publishedAt;
 
     @Column(name = "is_enabled")
     private boolean isEnabled;

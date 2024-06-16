@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Setter
@@ -30,7 +30,7 @@ public class LessonResponse {
     private LessonType lessonType;
 
     @JsonProperty("created_at")
-    private Date createdAt;
+    private Instant createdAt;
 
     @JsonProperty("chapter_id")
     private Integer chapterId;

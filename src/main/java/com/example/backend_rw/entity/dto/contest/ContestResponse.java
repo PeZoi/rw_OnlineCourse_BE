@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Setter
@@ -24,7 +24,7 @@ public class ContestResponse {
     private int period;
 
     @JsonProperty("created_at")
-    private Date createdAt;
+    private Instant createdAt;
 
     private boolean enabled;
 
