@@ -14,7 +14,7 @@ public class TrackCourse {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @Column(name = "duration_video")
     private LocalTime durationVideo;

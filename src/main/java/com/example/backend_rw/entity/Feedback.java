@@ -17,7 +17,7 @@ public class Feedback {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @Column(name = "full_name", nullable = false, length = 45)
     private String fullName;

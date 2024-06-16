@@ -15,7 +15,7 @@ import java.util.Date;
 public class Certificate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @Column(name = "achieved_time", nullable = false)
     private Date achievedTime;
