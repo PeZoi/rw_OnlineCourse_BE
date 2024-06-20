@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DetailResponse<T> {
+public class ResponseDetail<T> {
     private int status;
     private String error;
     private Object message;

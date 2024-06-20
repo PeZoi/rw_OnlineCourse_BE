@@ -1,6 +1,6 @@
 package com.example.backend_rw.utils;
 
-import com.example.backend_rw.entity.dto.DetailResponse;
+import com.example.backend_rw.entity.dto.ResponseDetail;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.MethodParameter;
@@ -29,7 +29,7 @@ public class FormatRestResponse implements ResponseBodyAdvice<Object> {
         HttpServletResponse httpServletResponse = ((ServletServerHttpResponse) response).getServletResponse();
         int status = httpServletResponse.getStatus();
 
-        DetailResponse<Object> detailResponse = new DetailResponse<>();
+        ResponseDetail<Object> detailResponse = new ResponseDetail<>();
         detailResponse.setStatus(status);
 
         // Trường hợp thất bại (có lỗi gì đó)
