@@ -6,4 +6,6 @@ import com.example.backend_rw.exception.FieldExistException;
 
 public interface AuthService {
     UserResponse register(UserRequest userRequest) throws FieldExistException;
+
+    String verify(String verification, String email);
 }

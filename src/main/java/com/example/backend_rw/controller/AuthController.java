@@ -22,4 +22,10 @@ public class AuthController {
     public ResponseEntity<UserResponse> registration(@RequestBody @Valid UserRequest userRequest) throws FieldExistException {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(userRequest));
     }
+
+    @PostMapping("/verify")
+    public ResponseEntity<String> verify(@RequestParam(value = "code") String verification, @RequestParam(value = "email") String email) {
+
+        return ResponseEntity.ok().body(authService.verify(verification, email));
+    }
 }

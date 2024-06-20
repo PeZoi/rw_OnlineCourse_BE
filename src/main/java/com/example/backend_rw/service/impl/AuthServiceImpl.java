@@ -4,6 +4,7 @@ import com.example.backend_rw.entity.Role;
 import com.example.backend_rw.entity.User;
 import com.example.backend_rw.entity.dto.user.UserRequest;
 import com.example.backend_rw.entity.dto.user.UserResponse;
+import com.example.backend_rw.exception.CustomException;
 import com.example.backend_rw.exception.FieldExistException;
 import com.example.backend_rw.repository.RoleRepository;
 import com.example.backend_rw.repository.UserRepository;
@@ -73,5 +74,21 @@ public class AuthServiceImpl implements AuthService {
         userResponse.setRoleName(role.getName());
 
         return userResponse;
+    }
+
+    @Override
+    public String verify(String verification, String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new CustomException("Email không tồn tại"));
+
+        if (user.getVerificationCode() == null) {
+            throw new CustomException("Tài khoản đã được kích hoạt");
+        } else {
+            if (user.getVerificationCode().equals(verification)) {
+                userRepository.enable(user.getId());
+                return "Tài khoản kích hoạt thành công";
+            } else {
+                throw new CustomException("Sai mã kích hoạt");
+            }
+        }
     }
 }

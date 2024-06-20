@@ -1,6 +1,7 @@
 package com.example.backend_rw.utils;
 
 import com.example.backend_rw.entity.dto.DetailResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -12,6 +13,11 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 @ControllerAdvice
 public class FormatRestResponse implements ResponseBodyAdvice<Object> {
+    private final ObjectMapper objectMapper;
+
+    public FormatRestResponse(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {
@@ -30,9 +36,18 @@ public class FormatRestResponse implements ResponseBodyAdvice<Object> {
         if (status >= 400) {
             return body;
         } else {
-        // Trường hợp thành công
+            // Trường hợp thành công
             detailResponse.setMessage("Successfully!");
             detailResponse.setData(body);
+        }
+
+        if (body instanceof String) {
+            try {
+                // Chuyển đổi đối tượng DetailResponse thành chuỗi JSON
+                return objectMapper.writeValueAsString(detailResponse);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         return detailResponse;
