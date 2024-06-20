@@ -11,6 +11,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Entity
 @Table(name = "users")
 public class User {
@@ -22,13 +23,13 @@ public class User {
     @Column(name = "full_name", length = 45, nullable = false)
     private String fullName;
 
-    @Column(length = 45, nullable = false)
+    @Column(length = 45,unique = true, nullable = false)
     private String username;
 
     @Column(nullable = false, unique = true, length = 30)
     private String email;
 
-    @Column(name = "phone_number", nullable = false, unique = true, length = 11)
+    @Column(name = "phone_number", nullable = false, length = 11)
     private String phoneNumber;
 
     @Column(length = 100)

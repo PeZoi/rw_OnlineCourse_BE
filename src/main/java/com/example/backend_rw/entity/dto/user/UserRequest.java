@@ -18,22 +18,22 @@ public class UserRequest {
 
     private Integer id;
 
-    @NotEmpty(message = "Full name can not be empty")
-    @Length(min = 4, max = 64, message = "Full name must have 4 - 64 characters")
+    @NotEmpty(message = "Họ và tên không được để trống")
+    @Length(min = 4, max = 64, message = "Họ và tên phải có 4 - 64 ký tự")
     @JsonProperty("full_name")
     private String fullName;
 
-    @NotEmpty(message = "Username can not be empty")
-    @Length(min = 4, max = 64, message = "Username must have 5 - 45 characters")
+    @NotEmpty(message = "Tên tài khoản không được để trống")
+    @Length(min = 4, max = 64, message = "Tên tài khoản phải có 5 - 45 ký tự")
     private String username;
 
-    @Email(message = "Email is invalid")
-    @NotEmpty(message = "Email can not be empty")
-    @Length(min = 15, max = 64, message = "Email must have 15 - 64 characters")
+    @Email(message = "Email không hợp lệ")
+    @NotEmpty(message = "Email không được để trống")
+    @Length(min = 15, max = 64, message = "Email phải có 15 - 64 ký tự")
     private String email;
 
-    @NotEmpty(message = "Phone number can not be empty")
-    @Length(min = 10, max = 11, message = "Phone number must have 10 - 11 numbers")
+    @NotEmpty(message = "Số điện thoại không được để trống")
+    @Length(min = 10, max = 11, message = "Số điện thoại không đúng định dạng")
     @JsonProperty("phone_number")
     private String phoneNumber;
 
