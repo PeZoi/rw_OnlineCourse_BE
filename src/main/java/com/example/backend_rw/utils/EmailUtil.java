@@ -6,6 +6,7 @@ import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
@@ -18,6 +19,7 @@ public class EmailUtil {
     @Value("${online.course.password}")
     private String password;
 
+    @Async
     public void sendEmail(String url, String subject, String content, User user) {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 //        Cấu hình email

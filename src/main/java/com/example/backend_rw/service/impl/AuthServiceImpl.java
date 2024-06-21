@@ -78,6 +78,7 @@ public class AuthServiceImpl implements AuthService {
 //        Link để active account
         String verifyURL = domainFE + "/auth/verify?code=" + user.getVerificationCode() + "&email=" + user.getEmail();
 
+//      Gửi email
         emailUtil.sendEmail(verifyURL, Constant.SUBJECT_REGISTER, Constant.EMAIL_TEMPLATE_REGISTER, user);
         User savedUser = userRepository.save(user);
 
