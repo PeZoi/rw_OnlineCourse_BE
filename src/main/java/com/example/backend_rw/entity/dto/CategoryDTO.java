@@ -1,6 +1,5 @@
 package com.example.backend_rw.entity.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,22 +12,9 @@ import org.hibernate.validator.constraints.Length;
 public class CategoryDTO {
     private Integer id;
 
-    @NotEmpty(message = "Category name can not be empty")
-    @Length(min = 10, max = 45, message = "Category name must have 10-45 characters")
+    @NotEmpty(message = "Thể loại không được để trống")
+    @Length(min = 2, max = 45, message = "Tên thể loại phải có ít nhất 2-45 ký tự")
     private String name;
 
     private String slug;
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class LoginDTO {
-
-        @Email(message = "Email is invalid")
-        @NotEmpty(message = "Email can not be empty")
-        private String email;
-
-        @NotEmpty(message = "Password can not be empty")
-        private String password;
-    }
 }
