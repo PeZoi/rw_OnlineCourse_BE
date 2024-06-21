@@ -36,9 +36,13 @@ public class SecurityConfig {
                 return corsConfig;
             });
         });
-        httpSecurity.csrf().disable().authorizeHttpRequests((authorize) -> authorize.requestMatchers("/api/auth/**").permitAll().anyRequest().authenticated()
-
-        ).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults()).authenticationEntryPoint(customAuthenticationEntryPoint)).exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) //401
+        httpSecurity.csrf().disable().authorizeHttpRequests(
+                (authorize) -> authorize
+                    .requestMatchers("/api/auth/**").permitAll()
+                    .anyRequest().permitAll()
+        ).sessionManagement(
+                session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults()).authenticationEntryPoint(customAuthenticationEntryPoint)).exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) //401
                 .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) //403
         ;
         return httpSecurity.build();
