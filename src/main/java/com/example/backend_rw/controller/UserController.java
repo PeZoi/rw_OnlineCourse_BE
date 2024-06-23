@@ -28,9 +28,14 @@ public class UserController {
     }
 
     @PostMapping("/change-info")
-    public ResponseEntity<UserResponse> updateInfoCustomer(@RequestParam(value = "full_name", required = false) String fullName,
+    public ResponseEntity<UserResponse> updateInfo(@RequestParam(value = "full_name", required = false) String fullName,
                                                            @RequestParam(value = "img", required = false) MultipartFile img,
                                                            @RequestParam(value = "email") String email){
-        return ResponseEntity.ok(userService.updateInfoCustomer(fullName, img, email));
+        return ResponseEntity.ok(userService.updateInfo(fullName, img, email));
+    }
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestParam(value = "password") String newPassword,
+                                                 @RequestParam(value = "email") String email){
+        return ResponseEntity.ok(userService.changePassword(newPassword, email));
     }
 }

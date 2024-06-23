@@ -11,5 +11,6 @@ public interface UserService {
 
     List<UserResponse> getAllUsers();
     UserResponse get(Integer userId);
-    UserResponse updateInfoCustomer(String fullName, MultipartFile img, String email);
+    UserResponse updateInfo(String fullName, MultipartFile img, String email);
+    String changePassword(String password, String email);
 }

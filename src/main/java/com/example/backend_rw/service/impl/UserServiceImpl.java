@@ -7,6 +7,7 @@ import com.example.backend_rw.service.UserService;
 import com.example.backend_rw.utils.UploadFile;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,11 +21,13 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final UploadFile uploadFile;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, UploadFile uploadFile) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, UploadFile uploadFile, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.uploadFile = uploadFile;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -43,14 +46,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse get(Integer userId) {
         Optional<User> user = userRepository.findById(userId);
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             throw new UsernameNotFoundException("User ID không tồn tại");
         }
         return modelMapper.map(user.get(), UserResponse.class);
     }
 
     @Override
-    public UserResponse updateInfoCustomer(String fullName, MultipartFile img, String email) {
+    public UserResponse updateInfo(String fullName, MultipartFile img, String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại"));
 
@@ -69,5 +72,14 @@ public class UserServiceImpl implements UserService {
         userResponse.setRoleName(savedUser.getRole().getName());
 
         return userResponse;
+    }
+
+    @Override
+    public String changePassword(String password, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại"));
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+        return "Thay đổi mật khẩu của bạn thành công!";
     }
 }
