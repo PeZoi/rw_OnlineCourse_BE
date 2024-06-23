@@ -3,10 +3,8 @@ package com.example.backend_rw.controller;
 import com.example.backend_rw.entity.dto.user.UserResponse;
 import com.example.backend_rw.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,5 +25,12 @@ public class UserController {
     @GetMapping("/get/{id}")
     public ResponseEntity<UserResponse> getUser(@PathVariable(value = "id") Integer userId){
         return ResponseEntity.ok(userService.get(userId));
+    }
+
+    @PostMapping("/change-info")
+    public ResponseEntity<UserResponse> updateInfoCustomer(@RequestParam(value = "full_name", required = false) String fullName,
+                                                           @RequestParam(value = "img", required = false) MultipartFile img,
+                                                           @RequestParam(value = "email") String email){
+        return ResponseEntity.ok(userService.updateInfoCustomer(fullName, img, email));
     }
 }
