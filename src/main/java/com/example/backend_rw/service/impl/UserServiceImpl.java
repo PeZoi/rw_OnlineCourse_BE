@@ -2,6 +2,7 @@ package com.example.backend_rw.service.impl;
 
 import com.example.backend_rw.entity.User;
 import com.example.backend_rw.entity.dto.user.UserResponse;
+import com.example.backend_rw.exception.CustomException;
 import com.example.backend_rw.repository.UserRepository;
 import com.example.backend_rw.service.UserService;
 import org.modelmapper.ModelMapper;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Transactional
 @Service
@@ -33,5 +35,14 @@ public class UserServiceImpl implements UserService {
         return users.stream().map(user -> {
             return modelMapper.map(user, UserResponse.class);
         }).toList();
+    }
+
+    @Override
+    public UserResponse get(Integer userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (!user.isPresent()) {
+            throw new UsernameNotFoundException("User ID không tồn tại");
+        }
+        return modelMapper.map(user.get(), UserResponse.class);
     }
 }

@@ -9,4 +9,5 @@ public interface UserService {
     User getUserByEmail(String email);
 
     List<UserResponse> getAllUsers();
+    UserResponse get(Integer userId);
 }

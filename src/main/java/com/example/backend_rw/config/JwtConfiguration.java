@@ -17,7 +17,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
-public class JwtConfig {
+public class JwtConfiguration {
 
     @Value("${online.course.jwt-secret}")
     private String jwtKey;
