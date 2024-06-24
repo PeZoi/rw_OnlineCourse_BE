@@ -3,10 +3,7 @@ package com.example.backend_rw.controller;
 import com.example.backend_rw.entity.dto.course.CourseReturnHomePageResponse;
 import com.example.backend_rw.service.CourseService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,5 +23,10 @@ public class CourseController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(listCourses);
+    }
+
+    @GetMapping("/get-detail/{slug}")
+    public ResponseEntity<?> getCourseDetailById(@PathVariable(value = "slug") String slug){
+        return ResponseEntity.ok(courseService.getCourseDetail(slug));
     }
 }

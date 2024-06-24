@@ -28,6 +28,12 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(detailResponse);
     }
 
+    @ExceptionHandler(value = NotFoundException.class)
+    public ResponseEntity<ResponseDetail<Object>> handleNotFoundException(NotFoundException notFoundException) {
+        ResponseDetail<Object> detailResponse = ResponseDetail.builder().status(HttpStatus.BAD_REQUEST.value()).error(notFoundException.getMessage()).message("Not Found Exception").build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(detailResponse);
+    }
+
     // Bắt các lỗi về validate
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ResponseDetail<Object>> handleValidationError(MethodArgumentNotValidException ex) {

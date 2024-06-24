@@ -3,10 +3,7 @@ package com.example.backend_rw.controller;
 import com.example.backend_rw.entity.dto.course.CourseReturnMyLearning;
 import com.example.backend_rw.service.LearningService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,5 +24,11 @@ public class LearningController {
         }
 
         return ResponseEntity.ok(listCourse);
+    }
+
+    @GetMapping("/check/exist-course/{slug}")
+    public ResponseEntity<?> checkExistRegisterCourse(@PathVariable(value = "slug") String slug,
+                                                      @RequestParam(value = "email") String email){
+        return ResponseEntity.ok(learningService.isRegisterInThisCourse(slug, email));
     }
 }

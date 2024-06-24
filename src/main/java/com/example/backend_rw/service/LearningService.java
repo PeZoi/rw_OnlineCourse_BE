@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface LearningService {
     List<CourseReturnMyLearning> listAllCourseRegisteredByCustomer(String email);
+    boolean isRegisterInThisCourse(String slug, String email);
 }
