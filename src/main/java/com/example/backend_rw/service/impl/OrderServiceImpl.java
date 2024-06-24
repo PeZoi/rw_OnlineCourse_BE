@@ -31,15 +31,13 @@ public class OrderServiceImpl implements OrderService {
         User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
 
         List<Order> listOrders = orderRepository.findAllByUser(user);
-        return convertToOrderListResponse(listOrders);
+        return listOrders.stream().map(this::convertToOrderResponse).toList();
     }
 
-    private List<OrderResponse> convertToOrderListResponse(List<Order> listOrders) {
-        return listOrders.stream().map(order -> {
-            OrderResponse orderResponse = modelMapper.map(order, OrderResponse.class);
-            orderResponse.setCourseName(order.getCourses().getTitle());
-            orderResponse.setCustomerName(order.getUser().getFullName());
-            return orderResponse;
-        }).toList();
+    private OrderResponse convertToOrderResponse(Order order) {
+        OrderResponse orderResponse = modelMapper.map(order, OrderResponse.class);
+        orderResponse.setCourseName(order.getCourses().getTitle());
+        orderResponse.setCustomerName(order.getUser().getFullName());
+        return orderResponse;
     }
 }
