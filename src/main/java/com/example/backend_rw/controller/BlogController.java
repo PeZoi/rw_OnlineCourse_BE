@@ -4,6 +4,7 @@ import com.example.backend_rw.entity.dto.blog.BlogResponse;
 import com.example.backend_rw.service.BlogService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,4 +27,15 @@ public class BlogController {
         }
         return ResponseEntity.ok(listBlogs);
     }
+
+    @GetMapping("/get-all/user/{id}")
+    public ResponseEntity<?> listAllByUser(@PathVariable(value = "id") Integer userId){
+        List<BlogResponse> listBlogs = blogService.getAllByUser(userId);
+        if(listBlogs.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(listBlogs);
+    }
+
 }

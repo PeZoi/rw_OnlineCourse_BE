@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface BlogService {
     List<BlogResponse> getAll();
+    List<BlogResponse> getAllByUser(Integer userId);
 }
