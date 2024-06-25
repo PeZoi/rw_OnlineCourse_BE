@@ -17,10 +17,12 @@ import com.example.backend_rw.utils.EmailUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.internal.bytebuddy.utility.RandomString;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,9 +58,9 @@ public class AuthServiceImpl implements AuthService {
     public UserResponse register(UserRequest userRequest) {
 //      Kiểm tra điều kiện
         if (userRepository.existsByUsername(userRequest.getUsername())) {
-            throw new CustomException("Tên tài khoản đã tồn tại");
+            throw new CustomException("Tên tài khoản đã tồn tại", HttpStatus.CONFLICT);
         } else if (userRepository.existsByEmail(userRequest.getEmail())) {
-            throw new CustomException("Email đã tồn tại");
+            throw new CustomException("Email đã tồn tại", HttpStatus.CONFLICT);
         }
 
 //      Lấy ra role mặc định khi user đăng ký
@@ -90,16 +92,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String verify(String verification, String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new CustomException("Email không tồn tại"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại"));
 
         if (user.getVerificationCode() == null) {
-            throw new CustomException("Tài khoản đã được kích hoạt");
+            throw new CustomException("Tài khoản đã được kích hoạt", HttpStatus.CONFLICT);
         } else {
             if (user.getVerificationCode().equals(verification)) {
                 userRepository.enable(user.getId());
                 return "Tài khoản kích hoạt thành công";
             } else {
-                throw new CustomException("Sai mã kích hoạt");
+                throw new CustomException("Sai mã kích hoạt", HttpStatus.BAD_REQUEST);
             }
         }
     }
