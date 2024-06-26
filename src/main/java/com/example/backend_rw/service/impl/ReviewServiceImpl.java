@@ -4,6 +4,7 @@ import com.example.backend_rw.entity.Courses;
 import com.example.backend_rw.entity.Review;
 import com.example.backend_rw.entity.User;
 import com.example.backend_rw.entity.dto.review.ListReviewResponse;
+import com.example.backend_rw.entity.dto.review.ReviewRequest;
 import com.example.backend_rw.entity.dto.review.ReviewResponse;
 import com.example.backend_rw.exception.CustomException;
 import com.example.backend_rw.exception.NotFoundException;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 @Transactional
@@ -67,6 +69,43 @@ public class ReviewServiceImpl implements ReviewService {
         throw new CustomException("Bạn đã đánh giá khóa học này trước đó!", HttpStatus.FORBIDDEN);
     }
 
+    @Override
+    public ReviewResponse createReview(ReviewRequest reviewRequest) {
+        User user = userRepository.findById(reviewRequest.getUserId())
+                .orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
+
+        Courses courses = coursesRepository.findById(reviewRequest.getCourseId())
+                .orElseThrow(() -> new NotFoundException("Courses ID không tồn tại"));
+
+        if(!orderRepository.existsOrderByCoursesAndUser(courses, user)){
+            throw new CustomException("Tài khoản " + user.getUsername() + " chưa từng mua khóa học này!", HttpStatus.FORBIDDEN);
+        }
+
+        if (reviewRepository.existsReviewByUserAndCourses(user, courses)){
+            throw new CustomException("Tài khoản " + user.getUsername() + " đã đánh giá khóa học này trước đó!", HttpStatus.CONFLICT);
+        }
+
+        Review review = new Review();
+        review.setComment(reviewRequest.getComment());
+        review.setRating(reviewRequest.getRating());
+        review.setUser(user);
+        review.setCourses(courses);
+        review.setReviewTime(Instant.now());
+
+        Review savedReview = reviewRepository.save(review);
+
+        return convertToReviewResponse(savedReview);
+    }
+
+    @Override
+    public String deleteReview(Integer reviewId) {
+        Review reviewInDB = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NotFoundException("Review ID không tồn tại"));
+
+        reviewRepository.delete(reviewInDB);
+        return "Xóa đánh giá thành công!";
+    }
+
     // Convert danh sách review thành DTO
     private ListReviewResponse convertToListReviewResponse(List<Review> listReviews) {
         ListReviewResponse listReviewResponse = new ListReviewResponse();
@@ -93,4 +132,6 @@ public class ReviewServiceImpl implements ReviewService {
         response.setTitleCourse(savedReview.getCourses().getTitle());
         return response;
     }
+
+
 }

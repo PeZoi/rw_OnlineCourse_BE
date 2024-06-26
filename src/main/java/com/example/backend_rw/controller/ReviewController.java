@@ -1,12 +1,11 @@
 package com.example.backend_rw.controller;
 
 import com.example.backend_rw.entity.dto.review.ListReviewResponse;
+import com.example.backend_rw.entity.dto.review.ReviewRequest;
 import com.example.backend_rw.service.ReviewService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -15,6 +14,16 @@ public class ReviewController {
 
     public ReviewController(ReviewService reviewService) {
         this.reviewService = reviewService;
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<?> create(@RequestBody @Valid ReviewRequest reviewRequest){
+        return ResponseEntity.ok(reviewService.createReview(reviewRequest));
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> delete(@PathVariable(value = "id") Integer reviewId){
+        return ResponseEntity.ok(reviewService.deleteReview(reviewId));
     }
 
     @GetMapping("/get-all/course/{id}")
