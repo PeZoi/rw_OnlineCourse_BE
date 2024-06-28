@@ -13,4 +13,5 @@ public interface RecordRepository extends JpaRepository<Record, Integer> {
     List<Record> findAllByUser(User user);
     List<Record> findAllByContest(Contest contest);
     int countAllByContest(Contest contest);
+    List<Record> findAllByUserAndContest(User user, Contest contest);
 }

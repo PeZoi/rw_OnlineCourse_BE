@@ -73,6 +73,19 @@ public class RecordServiceImpl implements RecordService {
 
         return filteredRecords.stream().map(this::convertToRank).toList();
     }
+
+    @Override
+    public List<RecordResponse> listAllRecordByUserAndContest(Integer userId, Integer contestId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
+
+        Contest contest = contestRepository.findById(contestId)
+                .orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
+
+        List<Record> listRecords = recordRepository.findAllByUserAndContest(user, contest);
+        return listRecords.stream().map(this::convertToRecordResponse).toList();
+    }
+
     private RecordReturnInRank convertToRank(Record record){
         RecordReturnInRank rank = modelMapper.map(record, RecordReturnInRank.class);
         rank.setUsername(record.getUser().getUsername());

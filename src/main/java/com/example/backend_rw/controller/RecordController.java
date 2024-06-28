@@ -27,4 +27,14 @@ public class RecordController {
         }
         return ResponseEntity.ok(listRecords);
     }
+
+    @GetMapping("/list-all/user-contest")
+    public ResponseEntity<?> listAllByUserAndContest(@RequestParam(value = "user") Integer userId,
+                                                     @RequestParam(value = "contest") Integer contestId){
+        List<RecordResponse> listRecords = recordService.listAllRecordByUserAndContest(userId, contestId);
+        if(listRecords.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(listRecords);
+    }
 }

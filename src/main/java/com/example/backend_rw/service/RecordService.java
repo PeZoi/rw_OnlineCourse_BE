@@ -8,4 +8,5 @@ import java.util.List;
 public interface RecordService {
     List<RecordResponse> listAllRecord(Integer userId);
     List<RecordReturnInRank> ranking(Integer contestId);
+    List<RecordResponse> listAllRecordByUserAndContest(Integer userId, Integer contestId);
 }
