@@ -41,4 +41,9 @@ public class ContestController {
         }
         return ResponseEntity.ok(listRanks);
     }
+
+    @GetMapping("/join/{contest_id}")
+    public ResponseEntity<?> join(@PathVariable(value = "contest_id") Integer contestId){
+        return ResponseEntity.ok(contestService.joinTest(contestId));
+    }
 }

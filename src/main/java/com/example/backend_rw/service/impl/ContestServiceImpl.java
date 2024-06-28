@@ -1,7 +1,11 @@
 package com.example.backend_rw.service.impl;
 
 import com.example.backend_rw.entity.Contest;
+import com.example.backend_rw.entity.Quiz;
 import com.example.backend_rw.entity.dto.contest.ContestResponse;
+import com.example.backend_rw.entity.dto.contest.ContestReturnInTest;
+import com.example.backend_rw.entity.dto.quiz.QuizReturnLearningPage;
+import com.example.backend_rw.exception.NotFoundException;
 import com.example.backend_rw.repository.ContestRepository;
 import com.example.backend_rw.repository.RecordRepository;
 import com.example.backend_rw.service.ContestService;
@@ -9,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Transactional
@@ -36,5 +41,31 @@ public class ContestServiceImpl implements ContestService {
                     response.setNumberOfJoined(numberOfJoined);
                     return response;
                 }).toList();
+    }
+
+    @Override
+    public ContestReturnInTest joinTest(Integer contestId) {
+        Contest contestInDB = contestRepository.findById(contestId)
+                .orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
+
+        ContestReturnInTest responseContest = modelMapper.map(contestInDB, ContestReturnInTest.class);
+        List<QuizReturnLearningPage> quizReturnLearningPages = convertToQuizResponse(contestInDB.getListQuizzes());
+        responseContest.setListQuizzes(quizReturnLearningPages);
+        responseContest.setNumberQuestion(quizReturnLearningPages.size());
+        return responseContest;
+    }
+
+    private List<QuizReturnLearningPage> convertToQuizResponse(List<Quiz> quizzes) {
+        List<QuizReturnLearningPage> listQuizzes = new ArrayList<>();
+        int i = 0;
+        for (Quiz quiz : quizzes) {
+            QuizReturnLearningPage quizReturnLearningPage = modelMapper.map(quiz, QuizReturnLearningPage.class);
+            if (quiz.getQuizType().toString().equals("PERFORATE")) {
+                quizReturnLearningPage.setAnswerList(null);
+            }
+            quizReturnLearningPage.setOrder(++i);
+            listQuizzes.add(quizReturnLearningPage);
+        }
+        return listQuizzes;
     }
 }
