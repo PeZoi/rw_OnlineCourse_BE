@@ -1,20 +1,21 @@
 package com.example.backend_rw.service.impl;
 
-import com.example.backend_rw.entity.Contest;
+import com.example.backend_rw.entity.*;
 import com.example.backend_rw.entity.Record;
-import com.example.backend_rw.entity.User;
+import com.example.backend_rw.entity.dto.quiz.AnswerLearningRequest;
+import com.example.backend_rw.entity.dto.quiz.QuizLearningRequest;
+import com.example.backend_rw.entity.dto.record.RecordRequest;
 import com.example.backend_rw.entity.dto.record.RecordResponse;
 import com.example.backend_rw.entity.dto.record.RecordReturnInRank;
 import com.example.backend_rw.exception.NotFoundException;
-import com.example.backend_rw.repository.ContestRepository;
-import com.example.backend_rw.repository.RecordRepository;
-import com.example.backend_rw.repository.UserRepository;
+import com.example.backend_rw.repository.*;
 import com.example.backend_rw.service.RecordService;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.*;
 
 @Transactional
@@ -24,12 +25,16 @@ public class RecordServiceImpl implements RecordService {
     private final UserRepository userRepository;
     private final RecordRepository recordRepository;
     private final ContestRepository contestRepository;
+    private final QuizRepository quizRepository;
+    private final AnswerQuizRepository answerQuizRepository;
 
-    public RecordServiceImpl(ModelMapper modelMapper, UserRepository userRepository, RecordRepository recordRepository, ContestRepository contestRepository) {
+    public RecordServiceImpl(ModelMapper modelMapper, UserRepository userRepository, RecordRepository recordRepository, ContestRepository contestRepository, QuizRepository quizRepository, AnswerQuizRepository answerQuizRepository) {
         this.modelMapper = modelMapper;
         this.userRepository = userRepository;
         this.recordRepository = recordRepository;
         this.contestRepository = contestRepository;
+        this.quizRepository = quizRepository;
+        this.answerQuizRepository = answerQuizRepository;
     }
 
     @Override
@@ -84,6 +89,193 @@ public class RecordServiceImpl implements RecordService {
 
         List<Record> listRecords = recordRepository.findAllByUserAndContest(user, contest);
         return listRecords.stream().map(this::convertToRecordResponse).toList();
+    }
+
+    @Override
+    public RecordResponse saveRecord(RecordRequest recordRequest) {
+        User user = userRepository.findById(recordRequest.getUserId())
+                .orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
+
+        Contest contest = contestRepository.findById(recordRequest.getContestId())
+                .orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
+
+        // Lưu thông tin vào trong record
+        Record record = new Record();
+        record.setUser(user);
+        record.setContest(contest);
+        record.setPeriod(recordRequest.getPeriod());
+        record.setJoinedAt(Instant.now());
+
+        float totalQuizzes = contest.getListQuizzes().size();
+        float correctTotalQuizzes = 0;
+
+        // Duyệt các câu hỏi
+        for (QuizLearningRequest quizLearningRequest : recordRequest.getListQuizzes()){
+            // Lấy id câu hỏi
+            Integer quizId = quizLearningRequest.getId();
+            Quiz quizInDB = quizRepository.findById(quizId)
+                    .orElseThrow(() -> new NotFoundException("Quiz ID không tồn tại"));
+
+            Set<Answer> answers = new HashSet<>();
+            // Đáp án của câu hỏi là đục lỗ
+            String contentPerforate = null;
+
+            switch (quizInDB.getQuizType()){
+                case ONE_CHOICE -> {
+                    Integer answerId = quizLearningRequest.getListAnswers().get(0).getId();
+
+                    Answer answerByIDInDB = answerQuizRepository.findById(answerId)
+                            .orElseThrow(() -> new NotFoundException("Answer ID không tồn tại"));
+
+                    // Kiểm tra xem câu trả lời của user chọn có đúng không
+                    Answer answer = answerQuizRepository.checkAnswerInCorrect(answerId);
+                    // Nếu câu trả lời là đúng thì tăng số câu hỏi đúng + 1
+                    if(answer != null) {
+                        ++correctTotalQuizzes;
+                    }
+
+                    // Thêm câu trả lời vào trong set
+                    answers.add(answerByIDInDB);
+                }
+                case PERFORATE -> {
+                        List<Answer> listAnswers = answerQuizRepository.listAllAnswerIsCorrect(quizId);
+                        // Lấy câu trả lời của user
+                        String contentAnswer = quizLearningRequest.getListAnswers().get(0).getContentPerforate();
+                        for (Answer answer : listAnswers){
+                            // Kiểm tra xem câu trả lời có đúng không
+                            if(contentAnswer.equalsIgnoreCase(answer.getContent())){
+                                // Tăng số câu trả lời đúng
+                                ++correctTotalQuizzes;
+                                break;
+                            }
+                        }
+
+                        // Gán là đáp án của user
+                        contentPerforate = contentAnswer;
+                }
+                case MULTIPLE_CHOICE -> {
+                    List<Answer> listAnswers = answerQuizRepository.listAllAnswerIsCorrect(quizId);
+
+                    // Số câu trả lời đúng của câu hỏi
+                    float totalAnswerCorrectInList = listAnswers.size();
+                    // Số câu trả lời đúng của user
+                    float totalAnswerCorrectInThere = 0.0f;
+
+                    for (AnswerLearningRequest answerLearningRequest : quizLearningRequest.getListAnswers()){
+                        // Lấy ra id của câu trả lời
+                        Integer answerId = answerLearningRequest.getId();
+                        Answer answerByIDInDB = answerQuizRepository.findById(answerId)
+                                .orElseThrow(() -> new NotFoundException("Answer ID không tồn tại"));
+
+                        // Lấy ra kiểm tra đáp án trong db (nếu có thì là đúng và ngược lại)
+                        Answer answer = answerQuizRepository.checkAnswerInCorrect(answerId);
+
+                        // LOGIC: Giả sử bạn chọn 3 đáp nhưng trong đó chỉ có 2 đáp đúng thôi thì => câu hỏi đó bạn đúng 1 đáp án
+                        if(answer != null){
+                            ++totalAnswerCorrectInThere;
+                        }else{
+                            --totalAnswerCorrectInThere;
+                        }
+
+                        answers.add(answerByIDInDB);
+                    }
+
+                    // Nếu số câu hỏi đúng dưới 0 thì là 0
+                    if(totalAnswerCorrectInThere < 0){
+                        totalAnswerCorrectInThere = 0.0f;
+                    }
+
+                    // Tính toán số câu hỏi đúng
+                    float percentMultipleChoiceQuiz = totalAnswerCorrectInThere / totalAnswerCorrectInList;
+                    correctTotalQuizzes += percentMultipleChoiceQuiz;
+
+
+                record.add(quizInDB, answers, contentPerforate);
+                }
+            }
+//
+//            if(quizInDB.getQuizType().toString().equals("ONE_CHOICE")){
+//                Integer answerId = quizLearningRequest.getListAnswers().get(0).getId();
+//
+//                Answer answerByIDInDB = answerQuizRepository.findById(answerId)
+//                        .orElseThrow(() -> new NotFoundException("Answer ID không tồn tại"));
+//
+//                // Kiểm tra xem câu trả lời của user chọn có đúng không
+//                Answer answer = answerQuizRepository.checkAnswerInCorrect(answerId);
+//                // Nếu câu trả lời là đúng thì tăng số câu hỏi đúng + 1
+//                if(answer != null) {
+//                    ++correctTotalQuizzes;
+//                }
+//
+//                // Thêm câu trả lời vào trong set
+//                answers.add(answerByIDInDB);
+//
+//            }
+//            else if(quizInDB.getQuizType().toString().equals("PERFORATE")){
+//                List<Answer> listAnswers = answerQuizRepository.listAllAnswerIsCorrect(quizId);
+//                // Lấy câu trả lời của user
+//                String contentAnswer = quizLearningRequest.getListAnswers().get(0).getContentPerforate();
+//                for (Answer answer : listAnswers){
+//                    // Kiểm tra xem câu trả lời có đúng không
+//                    if(contentAnswer.equalsIgnoreCase(answer.getContent())){
+//                        // Tăng số câu trả lời đúng
+//                        ++correctTotalQuizzes;
+//                        break;
+//                    }
+//                }
+//
+//                // Gán là đáp án của user
+//                contentPerforate = contentAnswer;
+//            }else{
+//                List<Answer> listAnswers = answerQuizRepository.listAllAnswerIsCorrect(quizId);
+//
+//                // Số câu trả lời đúng của câu hỏi
+//                float totalAnswerCorrectInList = listAnswers.size();
+//                // Số câu trả lời đúng của user
+//                float totalAnswerCorrectInThere = 0.0f;
+//
+//                for (AnswerLearningRequest answerLearningRequest : quizLearningRequest.getListAnswers()){
+//                    // Lấy ra id của câu trả lời
+//                    Integer answerId = answerLearningRequest.getId();
+//                    Answer answerByIDInDB = answerQuizRepository.findById(answerId)
+//                            .orElseThrow(() -> new NotFoundException("Answer ID không tồn tại"));
+//
+//                    // Lấy ra kiểm tra đáp án trong db (nếu có thì là đúng và ngược lại)
+//                    Answer answer = answerQuizRepository.checkAnswerInCorrect(answerId);
+//
+//                    // LOGIC: Giả sử bạn chọn 3 đáp nhưng trong đó chỉ có 2 đáp đúng thôi thì => câu hỏi đó bạn đúng 1 đáp án
+//                    if(answer != null){
+//                        ++totalAnswerCorrectInThere;
+//                    }else{
+//                        --totalAnswerCorrectInThere;
+//                    }
+//
+//                    answers.add(answerByIDInDB);
+//                }
+//
+//                // Nếu số câu hỏi đúng dưới 0 thì là 0
+//                if(totalAnswerCorrectInThere < 0){
+//                    totalAnswerCorrectInThere = 0.0f;
+//                }
+//
+//                // Tính toán số câu hỏi đúng
+//                float percentMultipleChoiceQuiz = totalAnswerCorrectInThere / totalAnswerCorrectInList;
+//                correctTotalQuizzes += percentMultipleChoiceQuiz;
+//            }
+//
+//            record.add(quizInDB, answers, contentPerforate);
+        }
+        // Tính toán tổng điểm cho bài thi
+        float grade = (correctTotalQuizzes * 10) / totalQuizzes;
+        grade = (float) (Math.round(grade * 100.0) / 100.0);
+
+        record.setGrade(grade);
+        record.setTotalAnswerCorrect(correctTotalQuizzes);
+
+        Record savedRecord = recordRepository.save(record);
+        RecordResponse response = convertToRecordResponse(savedRecord);
+        response.setTotalQuizzes(totalQuizzes);
+        return response;
     }
 
     private RecordReturnInRank convertToRank(Record record){

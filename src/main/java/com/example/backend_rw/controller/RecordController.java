@@ -1,12 +1,12 @@
 package com.example.backend_rw.controller;
 
+import com.example.backend_rw.entity.dto.record.RecordRequest;
 import com.example.backend_rw.entity.dto.record.RecordResponse;
 import com.example.backend_rw.service.RecordService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -17,6 +17,11 @@ public class RecordController {
 
     public RecordController(RecordService recordService) {
         this.recordService = recordService;
+    }
+
+    @PostMapping("/save")
+    public ResponseEntity<?> save(@RequestBody @Valid RecordRequest recordRequest){
+        return ResponseEntity.status(HttpStatus.CREATED).body(recordService.saveRecord(recordRequest));
     }
 
     @GetMapping("/list-all/user")
