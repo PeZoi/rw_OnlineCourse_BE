@@ -4,9 +4,11 @@ import com.example.backend_rw.entity.*;
 import com.example.backend_rw.entity.Record;
 import com.example.backend_rw.entity.dto.quiz.AnswerLearningRequest;
 import com.example.backend_rw.entity.dto.quiz.QuizLearningRequest;
+import com.example.backend_rw.entity.dto.quiz.QuizReturnInRecord;
 import com.example.backend_rw.entity.dto.record.RecordRequest;
 import com.example.backend_rw.entity.dto.record.RecordResponse;
 import com.example.backend_rw.entity.dto.record.RecordReturnInRank;
+import com.example.backend_rw.entity.dto.record.RecordReturnToReview;
 import com.example.backend_rw.exception.NotFoundException;
 import com.example.backend_rw.repository.*;
 import com.example.backend_rw.service.RecordService;
@@ -27,14 +29,16 @@ public class RecordServiceImpl implements RecordService {
     private final ContestRepository contestRepository;
     private final QuizRepository quizRepository;
     private final AnswerQuizRepository answerQuizRepository;
+    private final RecordDetailRepository recordDetailRepository;
 
-    public RecordServiceImpl(ModelMapper modelMapper, UserRepository userRepository, RecordRepository recordRepository, ContestRepository contestRepository, QuizRepository quizRepository, AnswerQuizRepository answerQuizRepository) {
+    public RecordServiceImpl(ModelMapper modelMapper, UserRepository userRepository, RecordRepository recordRepository, ContestRepository contestRepository, QuizRepository quizRepository, AnswerQuizRepository answerQuizRepository, RecordDetailRepository recordDetailRepository) {
         this.modelMapper = modelMapper;
         this.userRepository = userRepository;
         this.recordRepository = recordRepository;
         this.contestRepository = contestRepository;
         this.quizRepository = quizRepository;
         this.answerQuizRepository = answerQuizRepository;
+        this.recordDetailRepository = recordDetailRepository;
     }
 
     @Override
@@ -192,78 +196,8 @@ public class RecordServiceImpl implements RecordService {
 
                 record.add(quizInDB, answers, contentPerforate);
                 }
+                default -> {}
             }
-//
-//            if(quizInDB.getQuizType().toString().equals("ONE_CHOICE")){
-//                Integer answerId = quizLearningRequest.getListAnswers().get(0).getId();
-//
-//                Answer answerByIDInDB = answerQuizRepository.findById(answerId)
-//                        .orElseThrow(() -> new NotFoundException("Answer ID không tồn tại"));
-//
-//                // Kiểm tra xem câu trả lời của user chọn có đúng không
-//                Answer answer = answerQuizRepository.checkAnswerInCorrect(answerId);
-//                // Nếu câu trả lời là đúng thì tăng số câu hỏi đúng + 1
-//                if(answer != null) {
-//                    ++correctTotalQuizzes;
-//                }
-//
-//                // Thêm câu trả lời vào trong set
-//                answers.add(answerByIDInDB);
-//
-//            }
-//            else if(quizInDB.getQuizType().toString().equals("PERFORATE")){
-//                List<Answer> listAnswers = answerQuizRepository.listAllAnswerIsCorrect(quizId);
-//                // Lấy câu trả lời của user
-//                String contentAnswer = quizLearningRequest.getListAnswers().get(0).getContentPerforate();
-//                for (Answer answer : listAnswers){
-//                    // Kiểm tra xem câu trả lời có đúng không
-//                    if(contentAnswer.equalsIgnoreCase(answer.getContent())){
-//                        // Tăng số câu trả lời đúng
-//                        ++correctTotalQuizzes;
-//                        break;
-//                    }
-//                }
-//
-//                // Gán là đáp án của user
-//                contentPerforate = contentAnswer;
-//            }else{
-//                List<Answer> listAnswers = answerQuizRepository.listAllAnswerIsCorrect(quizId);
-//
-//                // Số câu trả lời đúng của câu hỏi
-//                float totalAnswerCorrectInList = listAnswers.size();
-//                // Số câu trả lời đúng của user
-//                float totalAnswerCorrectInThere = 0.0f;
-//
-//                for (AnswerLearningRequest answerLearningRequest : quizLearningRequest.getListAnswers()){
-//                    // Lấy ra id của câu trả lời
-//                    Integer answerId = answerLearningRequest.getId();
-//                    Answer answerByIDInDB = answerQuizRepository.findById(answerId)
-//                            .orElseThrow(() -> new NotFoundException("Answer ID không tồn tại"));
-//
-//                    // Lấy ra kiểm tra đáp án trong db (nếu có thì là đúng và ngược lại)
-//                    Answer answer = answerQuizRepository.checkAnswerInCorrect(answerId);
-//
-//                    // LOGIC: Giả sử bạn chọn 3 đáp nhưng trong đó chỉ có 2 đáp đúng thôi thì => câu hỏi đó bạn đúng 1 đáp án
-//                    if(answer != null){
-//                        ++totalAnswerCorrectInThere;
-//                    }else{
-//                        --totalAnswerCorrectInThere;
-//                    }
-//
-//                    answers.add(answerByIDInDB);
-//                }
-//
-//                // Nếu số câu hỏi đúng dưới 0 thì là 0
-//                if(totalAnswerCorrectInThere < 0){
-//                    totalAnswerCorrectInThere = 0.0f;
-//                }
-//
-//                // Tính toán số câu hỏi đúng
-//                float percentMultipleChoiceQuiz = totalAnswerCorrectInThere / totalAnswerCorrectInList;
-//                correctTotalQuizzes += percentMultipleChoiceQuiz;
-//            }
-//
-//            record.add(quizInDB, answers, contentPerforate);
         }
         // Tính toán tổng điểm cho bài thi
         float grade = (correctTotalQuizzes * 10) / totalQuizzes;
@@ -276,6 +210,133 @@ public class RecordServiceImpl implements RecordService {
         RecordResponse response = convertToRecordResponse(savedRecord);
         response.setTotalQuizzes(totalQuizzes);
         return response;
+    }
+
+    // BUG: Vì vẫn lấy số lượng câu hỏi bên bài thi nên khi cập nhật số lượng câu hỏi bên bài thi thì khi xem lại bài thi sẽ bị bug
+    @Override
+    public RecordReturnToReview review(Integer recordId) {
+        Record recordInDB = recordRepository.findById(recordId)
+                .orElseThrow(() -> new NotFoundException("Record ID không tồn tại"));
+
+        // Mapper qua thông tin bài đã làm
+        RecordReturnToReview reviewRecord = modelMapper.map(recordInDB, RecordReturnToReview.class);
+        reviewRecord.setTitleContest(recordInDB.getContest().getTitle());
+
+        // Danh sách câu hỏi đã làm
+        List<QuizReturnInRecord> listQuizzesInRecord = new ArrayList<>();
+
+        // Tổng số câu hỏi trong bài
+        float totalQuizzes = recordInDB.getContest().getListQuizzes().size();
+        // Tổng số câu hỏi làm đúng
+        float correctTotalQuizzes = 0;
+        int i = 0;
+
+        // Lặp lại từng câu hỏi
+        for (Quiz quiz : recordInDB.getContest().getListQuizzes()){
+            Quiz quizInDB = quizRepository.findById(quiz.getId())
+                    .orElseThrow(() -> new NotFoundException("Quiz ID không tồn tại"));
+
+            QuizReturnInRecord quizInRecord = modelMapper.map(quizInDB, QuizReturnInRecord.class);
+            quizInRecord.setOrder(++i);
+
+            RecordDetail recordDetail = recordDetailRepository.findRecordDetailByRecordAndQuiz(recordInDB, quizInDB);
+
+            if (recordDetail != null) {
+                switch (quizInDB.getQuizType()){
+                    case ONE_CHOICE -> {
+                        // Duyệt từng câu trả lời
+                        for (Answer answerInSet : recordDetail.getAnswer()){
+                            quizInRecord.getAnswerList().stream()
+                                    .filter(quizInStream -> quizInStream.getId().equals(answerInSet.getId()))
+                                    .forEach(quizInStream -> quizInStream.setAnswerOfCustomer(true));
+
+                            // Kiểm tra xem đáp án đó có đúng không
+                            Answer answer = answerQuizRepository.checkAnswerInCorrect(answerInSet.getId());
+                            // Nếu đáp án có (nghĩa là đúng)
+                            if(answer != null) {
+                                // Tăng số câu hỏi đúng lên
+                                ++correctTotalQuizzes;
+                                // Và gán câu hỏi đó là chính xác
+                                quizInRecord.setCorrectForAnswer(true);
+                            }
+                        }
+                    }
+                    case PERFORATE -> {
+                        // Lấy ra các câu trả lời đúng của câu hỏi đó
+                        List<Answer> listAnswers = answerQuizRepository.listAllAnswerIsCorrect(quizInDB.getId());
+                        // Lấy đáp án mà user trả lời
+                        String contentAnswer = recordDetail.getContentPerforate();
+                        for (Answer answer : listAnswers){
+                            // Kiểm tra xem có đúng không
+                            if(contentAnswer.equalsIgnoreCase(answer.getContent())){
+                                // Gán câu hỏi đó là chính xác
+                                quizInRecord.setCorrectForAnswer(true);
+                                // Tăng số câu hỏi đúng lên
+                                ++correctTotalQuizzes;
+                            }
+
+                            quizInRecord.getAnswerList().stream()
+                                    .filter(quizInStream -> quizInStream.getId().equals(answer.getId()))
+                                    .forEach(quizInStream -> quizInStream.setContentPerforateOfCustomer(contentAnswer));
+                        }
+                    }
+                    case MULTIPLE_CHOICE -> {
+                        // Lấy ra các câu trả lời đúng của câu hỏi đó
+                        List<Answer> listAnswers = answerQuizRepository.listAllAnswerIsCorrect(quizInDB.getId());
+                        // Số câu hỏi trong bài thi
+                        float totalAnswerCorrectInList = listAnswers.size();
+                        // Số câu hỏi đúng của user
+                        float totalAnswerCorrectInThere = 0.0f;
+                        // Lắp các câu trả lời của user
+                        for (Answer answerInSet : recordDetail.getAnswer()){
+                            Integer answerId = answerInSet.getId();
+                            // Kiểm tra xem câu trả lời có đúng không
+                            Answer answer = answerQuizRepository.checkAnswerInCorrect(answerId);
+
+                            quizInRecord.getAnswerList().stream()
+                                    .filter(quizInStream -> quizInStream.getId().equals(answerInSet.getId()))
+                                    .forEach(quizInStream -> quizInStream.setAnswerOfCustomer(true));
+
+                            // Nếu đúng
+                            if(answer != null){
+                                // Tăng số câu hỏi đúng của user lên
+                                ++totalAnswerCorrectInThere;
+                            }else{
+                                // Giảm số câu hỏi đúng của user lên
+                                --totalAnswerCorrectInThere;
+                            }
+
+                        }
+
+                        // Nếu số câu hỏi đúng mà < 0 -> thì cho là = 0
+                        if(totalAnswerCorrectInThere < 0){
+                            totalAnswerCorrectInThere = 0.0f;
+                        }
+
+                        // Nếu các đáp án là đúng hết -> câu hỏi này đúng
+                        if(totalAnswerCorrectInThere == totalAnswerCorrectInList){
+                            quizInRecord.setCorrectForAnswer(true);
+                        }
+
+                        // Tính số câu hỏi đúng
+                        float percentMultipleChoiceQuiz = totalAnswerCorrectInThere / totalAnswerCorrectInList;
+                        correctTotalQuizzes += percentMultipleChoiceQuiz;
+                    }
+                    default -> {}
+                }
+            }
+            listQuizzesInRecord.add(quizInRecord);
+        }
+        // Tính điểm
+        float grade = (correctTotalQuizzes * 10) / totalQuizzes;
+        grade = (float) (Math.round(grade * 100.0) / 100.0);
+
+        reviewRecord.setGrade(grade);
+        reviewRecord.setTotalQuizzes(totalQuizzes);
+        reviewRecord.setTotalQuizIsCorrect(correctTotalQuizzes);
+        reviewRecord.setListQuizzes(listQuizzesInRecord);
+
+        return reviewRecord;
     }
 
     private RecordReturnInRank convertToRank(Record record){
