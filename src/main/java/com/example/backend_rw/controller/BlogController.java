@@ -3,10 +3,7 @@ package com.example.backend_rw.controller;
 import com.example.backend_rw.entity.dto.blog.BlogResponse;
 import com.example.backend_rw.service.BlogService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -43,4 +40,9 @@ public class BlogController {
         return ResponseEntity.ok(blogService.get(slug));
     }
 
+
+    @PutMapping("/update/view/{id}")
+    public ResponseEntity<?> view(@PathVariable(value = "id") Integer blogId){
+        return ResponseEntity.ok(blogService.view(blogId));
+    }
 }

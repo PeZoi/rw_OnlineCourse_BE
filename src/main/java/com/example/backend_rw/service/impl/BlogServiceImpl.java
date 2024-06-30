@@ -50,6 +50,19 @@ public class BlogServiceImpl implements BlogService {
         return convertToBlogResponse(blog);
     }
 
+    @Override
+    public String view(Integer blogId) {
+        Blog blogInDB = blogRepository.findById(blogId)
+                .orElseThrow(() -> new NotFoundException("Blog ID không tồn tại"));
+        int view = blogInDB.getView();
+
+        blogInDB.setView(++view);
+
+        blogRepository.save(blogInDB);
+
+        return "Cập nhật lượt xem thành công";
+    }
+
     private BlogResponse convertToBlogResponse(Blog savedBlog) {
         BlogResponse response = modelMapper.map(savedBlog, BlogResponse.class);
         Instant now = Instant.now();
