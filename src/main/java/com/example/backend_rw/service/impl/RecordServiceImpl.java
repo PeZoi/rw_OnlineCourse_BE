@@ -1,7 +1,7 @@
 package com.example.backend_rw.service.impl;
 
-import com.example.backend_rw.entity.*;
 import com.example.backend_rw.entity.Record;
+import com.example.backend_rw.entity.*;
 import com.example.backend_rw.entity.dto.quiz.AnswerLearningRequest;
 import com.example.backend_rw.entity.dto.quiz.QuizLearningRequest;
 import com.example.backend_rw.entity.dto.quiz.QuizReturnInRecord;
@@ -51,24 +51,23 @@ public class RecordServiceImpl implements RecordService {
 
     @Override
     public List<RecordReturnInRank> ranking(Integer contestId) {
-        Contest contest = contestRepository.findById(contestId)
-                .orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
+        Contest contest = contestRepository.findById(contestId).orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
 
         List<Record> listRecords = recordRepository.findAllByContest(contest);
 
         Map<Integer, Record> recordMap = new HashMap<>();
-        for(Record record : listRecords){
+        for (Record record : listRecords) {
             Integer userId = record.getUser().getId();
             // Nếu mà trong danh sách chưa chứa user
-            if(!recordMap.containsKey(userId)){
+            if (!recordMap.containsKey(userId)) {
                 // Cho user vào danh sách
                 recordMap.put(userId, record);
-            }else{
+            } else {
                 // Nếu trong danh sách có user rồi
                 Record recordFromMap = recordMap.get(userId);
                 // Kiểm tra thời gian làm bài
                 // Nếu thời gian nào nhỏ hơn (tức là làm trước đó rồi) thì sẽ gán lại thông tin trong danh sách
-                if(record.getJoinedAt().isBefore(recordFromMap.getJoinedAt())){
+                if (record.getJoinedAt().isBefore(recordFromMap.getJoinedAt())) {
                     recordMap.put(userId, record);
                 }
             }
@@ -76,20 +75,16 @@ public class RecordServiceImpl implements RecordService {
 
         List<Record> filteredRecords = new ArrayList<>(recordMap.values());
         // Sắp xếp lại theo thứ tự (ưu tiên: điểm số -> thời gian làm bài -> thời gian tham gia)
-        filteredRecords.sort(Comparator.comparing(Record::getGrade).reversed()
-                .thenComparing(Record::getPeriod)
-                .thenComparing(Record::getJoinedAt));
+        filteredRecords.sort(Comparator.comparing(Record::getGrade).reversed().thenComparing(Record::getPeriod).thenComparing(Record::getJoinedAt));
 
         return filteredRecords.stream().map(this::convertToRank).toList();
     }
 
     @Override
     public List<RecordResponse> listAllRecordByUserAndContest(Integer userId, Integer contestId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
 
-        Contest contest = contestRepository.findById(contestId)
-                .orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
+        Contest contest = contestRepository.findById(contestId).orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
 
         List<Record> listRecords = recordRepository.findAllByUserAndContest(user, contest);
         return listRecords.stream().map(this::convertToRecordResponse).toList();
@@ -97,11 +92,9 @@ public class RecordServiceImpl implements RecordService {
 
     @Override
     public RecordResponse saveRecord(RecordRequest recordRequest) {
-        User user = userRepository.findById(recordRequest.getUserId())
-                .orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
+        User user = userRepository.findById(recordRequest.getUserId()).orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
 
-        Contest contest = contestRepository.findById(recordRequest.getContestId())
-                .orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
+        Contest contest = contestRepository.findById(recordRequest.getContestId()).orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
 
         // Lưu thông tin vào trong record
         Record record = new Record();
@@ -114,27 +107,26 @@ public class RecordServiceImpl implements RecordService {
         float correctTotalQuizzes = 0;
 
         // Duyệt các câu hỏi
-        for (QuizLearningRequest quizLearningRequest : recordRequest.getListQuizzes()){
+        for (QuizLearningRequest quizLearningRequest : recordRequest.getListQuizzes()) {
             // Lấy id câu hỏi
             Integer quizId = quizLearningRequest.getId();
-            Quiz quizInDB = quizRepository.findById(quizId)
-                    .orElseThrow(() -> new NotFoundException("Quiz ID không tồn tại"));
+            Quiz quizInDB = quizRepository.findById(quizId).orElseThrow(() -> new NotFoundException("Quiz ID không tồn tại"));
 
             Set<Answer> answers = new HashSet<>();
             // Đáp án của câu hỏi là đục lỗ
             String contentPerforate = null;
 
-            switch (quizInDB.getQuizType()){
+
+            switch (quizInDB.getQuizType()) {
                 case ONE_CHOICE -> {
                     Integer answerId = quizLearningRequest.getListAnswers().get(0).getId();
 
-                    Answer answerByIDInDB = answerQuizRepository.findById(answerId)
-                            .orElseThrow(() -> new NotFoundException("Answer ID không tồn tại"));
+                    Answer answerByIDInDB = answerQuizRepository.findById(answerId).orElseThrow(() -> new NotFoundException("Answer ID không tồn tại"));
 
                     // Kiểm tra xem câu trả lời của user chọn có đúng không
                     Answer answer = answerQuizRepository.checkAnswerInCorrect(answerId);
                     // Nếu câu trả lời là đúng thì tăng số câu hỏi đúng + 1
-                    if(answer != null) {
+                    if (answer != null) {
                         ++correctTotalQuizzes;
                     }
 
@@ -142,20 +134,20 @@ public class RecordServiceImpl implements RecordService {
                     answers.add(answerByIDInDB);
                 }
                 case PERFORATE -> {
-                        List<Answer> listAnswers = answerQuizRepository.listAllAnswerIsCorrect(quizId);
-                        // Lấy câu trả lời của user
-                        String contentAnswer = quizLearningRequest.getListAnswers().get(0).getContentPerforate();
-                        for (Answer answer : listAnswers){
-                            // Kiểm tra xem câu trả lời có đúng không
-                            if(contentAnswer.equalsIgnoreCase(answer.getContent())){
-                                // Tăng số câu trả lời đúng
-                                ++correctTotalQuizzes;
-                                break;
-                            }
+                    List<Answer> listAnswers = answerQuizRepository.listAllAnswerIsCorrect(quizId);
+                    // Lấy câu trả lời của user
+                    String contentAnswer = quizLearningRequest.getListAnswers().get(0).getContentPerforate();
+                    for (Answer answer : listAnswers) {
+                        // Kiểm tra xem câu trả lời có đúng không
+                        if (contentAnswer.equalsIgnoreCase(answer.getContent())) {
+                            // Tăng số câu trả lời đúng
+                            ++correctTotalQuizzes;
+                            break;
                         }
+                    }
 
-                        // Gán là đáp án của user
-                        contentPerforate = contentAnswer;
+                    // Gán là đáp án của user
+                    contentPerforate = contentAnswer;
                 }
                 case MULTIPLE_CHOICE -> {
                     List<Answer> listAnswers = answerQuizRepository.listAllAnswerIsCorrect(quizId);
@@ -165,19 +157,18 @@ public class RecordServiceImpl implements RecordService {
                     // Số câu trả lời đúng của user
                     float totalAnswerCorrectInThere = 0.0f;
 
-                    for (AnswerLearningRequest answerLearningRequest : quizLearningRequest.getListAnswers()){
+                    for (AnswerLearningRequest answerLearningRequest : quizLearningRequest.getListAnswers()) {
                         // Lấy ra id của câu trả lời
                         Integer answerId = answerLearningRequest.getId();
-                        Answer answerByIDInDB = answerQuizRepository.findById(answerId)
-                                .orElseThrow(() -> new NotFoundException("Answer ID không tồn tại"));
+                        Answer answerByIDInDB = answerQuizRepository.findById(answerId).orElseThrow(() -> new NotFoundException("Answer ID không tồn tại"));
 
                         // Lấy ra kiểm tra đáp án trong db (nếu có thì là đúng và ngược lại)
                         Answer answer = answerQuizRepository.checkAnswerInCorrect(answerId);
 
                         // LOGIC: Giả sử bạn chọn 3 đáp nhưng trong đó chỉ có 2 đáp đúng thôi thì => câu hỏi đó bạn đúng 1 đáp án
-                        if(answer != null){
+                        if (answer != null) {
                             ++totalAnswerCorrectInThere;
-                        }else{
+                        } else {
                             --totalAnswerCorrectInThere;
                         }
 
@@ -185,19 +176,17 @@ public class RecordServiceImpl implements RecordService {
                     }
 
                     // Nếu số câu hỏi đúng dưới 0 thì là 0
-                    if(totalAnswerCorrectInThere < 0){
+                    if (totalAnswerCorrectInThere < 0) {
                         totalAnswerCorrectInThere = 0.0f;
                     }
 
                     // Tính toán số câu hỏi đúng
                     float percentMultipleChoiceQuiz = totalAnswerCorrectInThere / totalAnswerCorrectInList;
                     correctTotalQuizzes += percentMultipleChoiceQuiz;
-
-
-                record.add(quizInDB, answers, contentPerforate);
                 }
                 default -> {}
             }
+            record.add(quizInDB, answers, contentPerforate);
         }
         // Tính toán tổng điểm cho bài thi
         float grade = (correctTotalQuizzes * 10) / totalQuizzes;
@@ -215,8 +204,7 @@ public class RecordServiceImpl implements RecordService {
     // BUG: Vì vẫn lấy số lượng câu hỏi bên bài thi nên khi cập nhật số lượng câu hỏi bên bài thi thì khi xem lại bài thi sẽ bị bug
     @Override
     public RecordReturnToReview review(Integer recordId) {
-        Record recordInDB = recordRepository.findById(recordId)
-                .orElseThrow(() -> new NotFoundException("Record ID không tồn tại"));
+        Record recordInDB = recordRepository.findById(recordId).orElseThrow(() -> new NotFoundException("Record ID không tồn tại"));
 
         // Mapper qua thông tin bài đã làm
         RecordReturnToReview reviewRecord = modelMapper.map(recordInDB, RecordReturnToReview.class);
@@ -232,9 +220,8 @@ public class RecordServiceImpl implements RecordService {
         int i = 0;
 
         // Lặp lại từng câu hỏi
-        for (Quiz quiz : recordInDB.getContest().getListQuizzes()){
-            Quiz quizInDB = quizRepository.findById(quiz.getId())
-                    .orElseThrow(() -> new NotFoundException("Quiz ID không tồn tại"));
+        for (Quiz quiz : recordInDB.getContest().getListQuizzes()) {
+            Quiz quizInDB = quizRepository.findById(quiz.getId()).orElseThrow(() -> new NotFoundException("Quiz ID không tồn tại"));
 
             QuizReturnInRecord quizInRecord = modelMapper.map(quizInDB, QuizReturnInRecord.class);
             quizInRecord.setOrder(++i);
@@ -242,18 +229,16 @@ public class RecordServiceImpl implements RecordService {
             RecordDetail recordDetail = recordDetailRepository.findRecordDetailByRecordAndQuiz(recordInDB, quizInDB);
 
             if (recordDetail != null) {
-                switch (quizInDB.getQuizType()){
+                switch (quizInDB.getQuizType()) {
                     case ONE_CHOICE -> {
                         // Duyệt từng câu trả lời
-                        for (Answer answerInSet : recordDetail.getAnswer()){
-                            quizInRecord.getAnswerList().stream()
-                                    .filter(quizInStream -> quizInStream.getId().equals(answerInSet.getId()))
-                                    .forEach(quizInStream -> quizInStream.setAnswerOfCustomer(true));
+                        for (Answer answerInSet : recordDetail.getAnswer()) {
+                            quizInRecord.getAnswerList().stream().filter(quizInStream -> quizInStream.getId().equals(answerInSet.getId())).forEach(quizInStream -> quizInStream.setAnswerOfCustomer(true));
 
                             // Kiểm tra xem đáp án đó có đúng không
                             Answer answer = answerQuizRepository.checkAnswerInCorrect(answerInSet.getId());
                             // Nếu đáp án có (nghĩa là đúng)
-                            if(answer != null) {
+                            if (answer != null) {
                                 // Tăng số câu hỏi đúng lên
                                 ++correctTotalQuizzes;
                                 // Và gán câu hỏi đó là chính xác
@@ -266,18 +251,16 @@ public class RecordServiceImpl implements RecordService {
                         List<Answer> listAnswers = answerQuizRepository.listAllAnswerIsCorrect(quizInDB.getId());
                         // Lấy đáp án mà user trả lời
                         String contentAnswer = recordDetail.getContentPerforate();
-                        for (Answer answer : listAnswers){
+                        for (Answer answer : listAnswers) {
                             // Kiểm tra xem có đúng không
-                            if(contentAnswer.equalsIgnoreCase(answer.getContent())){
+                            if (contentAnswer.equalsIgnoreCase(answer.getContent())) {
                                 // Gán câu hỏi đó là chính xác
                                 quizInRecord.setCorrectForAnswer(true);
                                 // Tăng số câu hỏi đúng lên
                                 ++correctTotalQuizzes;
                             }
 
-                            quizInRecord.getAnswerList().stream()
-                                    .filter(quizInStream -> quizInStream.getId().equals(answer.getId()))
-                                    .forEach(quizInStream -> quizInStream.setContentPerforateOfCustomer(contentAnswer));
+                            quizInRecord.getAnswerList().stream().filter(quizInStream -> quizInStream.getId().equals(answer.getId())).forEach(quizInStream -> quizInStream.setContentPerforateOfCustomer(contentAnswer));
                         }
                     }
                     case MULTIPLE_CHOICE -> {
@@ -288,20 +271,18 @@ public class RecordServiceImpl implements RecordService {
                         // Số câu hỏi đúng của user
                         float totalAnswerCorrectInThere = 0.0f;
                         // Lắp các câu trả lời của user
-                        for (Answer answerInSet : recordDetail.getAnswer()){
+                        for (Answer answerInSet : recordDetail.getAnswer()) {
                             Integer answerId = answerInSet.getId();
                             // Kiểm tra xem câu trả lời có đúng không
                             Answer answer = answerQuizRepository.checkAnswerInCorrect(answerId);
 
-                            quizInRecord.getAnswerList().stream()
-                                    .filter(quizInStream -> quizInStream.getId().equals(answerInSet.getId()))
-                                    .forEach(quizInStream -> quizInStream.setAnswerOfCustomer(true));
+                            quizInRecord.getAnswerList().stream().filter(quizInStream -> quizInStream.getId().equals(answerInSet.getId())).forEach(quizInStream -> quizInStream.setAnswerOfCustomer(true));
 
                             // Nếu đúng
-                            if(answer != null){
+                            if (answer != null) {
                                 // Tăng số câu hỏi đúng của user lên
                                 ++totalAnswerCorrectInThere;
-                            }else{
+                            } else {
                                 // Giảm số câu hỏi đúng của user lên
                                 --totalAnswerCorrectInThere;
                             }
@@ -309,12 +290,12 @@ public class RecordServiceImpl implements RecordService {
                         }
 
                         // Nếu số câu hỏi đúng mà < 0 -> thì cho là = 0
-                        if(totalAnswerCorrectInThere < 0){
+                        if (totalAnswerCorrectInThere < 0) {
                             totalAnswerCorrectInThere = 0.0f;
                         }
 
                         // Nếu các đáp án là đúng hết -> câu hỏi này đúng
-                        if(totalAnswerCorrectInThere == totalAnswerCorrectInList){
+                        if (totalAnswerCorrectInThere == totalAnswerCorrectInList) {
                             quizInRecord.setCorrectForAnswer(true);
                         }
 
@@ -322,7 +303,8 @@ public class RecordServiceImpl implements RecordService {
                         float percentMultipleChoiceQuiz = totalAnswerCorrectInThere / totalAnswerCorrectInList;
                         correctTotalQuizzes += percentMultipleChoiceQuiz;
                     }
-                    default -> {}
+                    default -> {
+                    }
                 }
             }
             listQuizzesInRecord.add(quizInRecord);
@@ -339,7 +321,7 @@ public class RecordServiceImpl implements RecordService {
         return reviewRecord;
     }
 
-    private RecordReturnInRank convertToRank(Record record){
+    private RecordReturnInRank convertToRank(Record record) {
         RecordReturnInRank rank = modelMapper.map(record, RecordReturnInRank.class);
         rank.setUsername(record.getUser().getUsername());
         rank.setAvatarUser(record.getUser().getPhoto());
