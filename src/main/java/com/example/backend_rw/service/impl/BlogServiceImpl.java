@@ -3,6 +3,7 @@ package com.example.backend_rw.service.impl;
 import com.example.backend_rw.entity.Blog;
 import com.example.backend_rw.entity.User;
 import com.example.backend_rw.entity.dto.blog.BlogResponse;
+import com.example.backend_rw.exception.NotFoundException;
 import com.example.backend_rw.repository.BlogRepository;
 import com.example.backend_rw.repository.UserRepository;
 import com.example.backend_rw.service.BlogService;
@@ -31,7 +32,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public List<BlogResponse> getAll() {
-        return blogRepository.findAll().stream().map(this::convertToResponse).toList();
+        return blogRepository.findAll().stream().map(this::convertToBlogResponse).toList();
     }
 
     @Override
@@ -40,10 +41,16 @@ public class BlogServiceImpl implements BlogService {
                 .orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
 
         List<Blog> listBlogs = blogRepository.findAllByUser(user);
-        return listBlogs.stream().map(this::convertToResponse).toList();
+        return listBlogs.stream().map(this::convertToBlogResponse).toList();
     }
 
-    private BlogResponse convertToResponse(Blog savedBlog) {
+    @Override
+    public BlogResponse get(String slug) {
+        Blog blog = blogRepository.findBySlug(slug).orElseThrow(() -> new NotFoundException("Slug không tồn tại"));
+        return convertToBlogResponse(blog);
+    }
+
+    private BlogResponse convertToBlogResponse(Blog savedBlog) {
         BlogResponse response = modelMapper.map(savedBlog, BlogResponse.class);
         Instant now = Instant.now();
         response.setCreatedAtFormat(Utils.formatDuration(Duration.between(savedBlog.getCreatedAt(), now)));
