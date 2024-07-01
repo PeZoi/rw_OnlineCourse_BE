@@ -123,4 +123,36 @@ public class AuthServiceImpl implements AuthService {
 
         return new JWTAuthResponse(accessToken, userReturnJwt);
     }
+
+    @Override
+    public void requestPassword(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại"));
+
+        String token = RandomString.make(30);
+        user.setResetPasswordToken(token);
+        String url = domainFE + "/auth/request-password?token=" + token;
+        emailUtil.sendEmail(url, Constant.SUBJECT_RESET, Constant.CONTENT_RESET, user);
+        userRepository.save(user);
+    }
+
+    @Override
+    public UserResponse findByResetPasswordToken(String token) {
+        User user = userRepository.findUserByResetPasswordToken(token);
+        UserResponse userResponse = modelMapper.map(user, UserResponse.class);
+        userResponse.setRoleName(user.getRole().getName());
+        return userResponse;
+    }
+
+    @Override
+    public void updatePassword(String token, String password) {
+        User user = userRepository.findUserByResetPasswordToken(token);
+        if (user == null) {
+            throw new CustomException("Token không hợp lệ", HttpStatus.BAD_REQUEST);
+        }
+
+        user.setPassword(passwordEncoder.encode(password));
+        user.setResetPasswordToken(null);
+
+        userRepository.save(user);
+    }
 }

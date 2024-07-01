@@ -35,5 +35,26 @@ public class AuthController {
         return ResponseEntity.ok().body(authService.verify(verification, email));
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> processRequestFormResetPassword(@RequestParam(value = "email") String email){
+        authService.requestPassword(email);
+        return ResponseEntity.ok("Chúng tôi đã gửi một liên kết đặt lại mật khẩu đến địa chỉ email của bạn. Vui lòng kiểm tra!");
+    }
+
+    @PostMapping ("/handle/reset-password")
+    public ResponseEntity<String> showResetForm(@RequestParam(value = "token") String token){
+        UserResponse response = authService.findByResetPasswordToken(token);
+        if(response != null){
+            return ResponseEntity.ok(token);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mã không hợp lệ");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> updatePasswordInForgotForm(@RequestParam(value = "token") String token,
+                                                        @RequestParam(value = "password") String newPassword){
+        authService.updatePassword(token, newPassword);
+        return ResponseEntity.ok("Bạn đã thay đổi mật khẩu thành công.");
+    }
 
 }

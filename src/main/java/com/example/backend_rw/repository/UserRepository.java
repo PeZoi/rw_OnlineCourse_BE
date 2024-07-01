@@ -11,12 +11,10 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
     boolean existsByUsername(String username);
-
     boolean existsByEmail(String email);
-
     Optional<User> findByEmail(String email);
-
     @Modifying
     @Query("update User u set u.enabled = true, u.verificationCode = null where u.id = ?1")
     void enable(Integer id);
+    User findUserByResetPasswordToken(String token);
 }
