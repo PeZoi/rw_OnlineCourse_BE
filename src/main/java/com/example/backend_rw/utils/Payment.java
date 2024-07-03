@@ -4,6 +4,7 @@ import com.example.backend_rw.entity.dto.payment.BankRequest;
 import com.example.backend_rw.entity.dto.payment.BankResponse;
 import com.example.backend_rw.entity.dto.payment.BankTransactionInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,11 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 
 @Component
+@Getter
 public class Payment {
+    private String ACCOUNT_NAME = "PHẠM NGỌC VIỄN ĐÔNG"; // Không để được vào env do khi lấy ra nó không hỗ trợ utf-8
+    @Value("${online.course.bank_branch}")
+    private String BANK_BRANCH;
     @Value("${online.course.bank_number}")
     private String BANK_NUMBER;
     @Value("${online.course.bank_username}")
@@ -38,7 +43,7 @@ public class Payment {
         return null;
     }
 
-    private HttpHeaders initHttpRequest(){
+    private HttpHeaders initHttpRequest() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/json, text/plain, */*");
         headers.set("Accept-Encoding", "gzip, deflate, br, zstd");
@@ -49,6 +54,7 @@ public class Payment {
         headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0");
         return headers;
     }
+
     public String login() {
         String url = "https://ebank.tpb.vn/gateway/api/auth/login";
 
