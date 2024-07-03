@@ -1,28 +1,30 @@
-package com.example.backend_rw.config;
+package com.example.backend_rw.utils;
 
 import com.example.backend_rw.entity.dto.payment.BankRequest;
 import com.example.backend_rw.entity.dto.payment.BankResponse;
 import com.example.backend_rw.entity.dto.payment.BankTransactionInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.*;
+import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Base64;
 
-@Configuration
-public class PaymentConfiguration {
+@Component
+public class Payment {
     @Value("${online.course.bank_number}")
     private String BANK_NUMBER;
     @Value("${online.course.bank_username}")
     private String USERNAME;
     @Value("${online.course.bank_password}")
     private String PASSWORD;
+    private String tokenBank = null;
+    private LocalDateTime lastLoginTime = null;
 
     // Lấy token của tpbank
     private String parseAccessToken(String jsonResponse) {
@@ -36,11 +38,7 @@ public class PaymentConfiguration {
         return null;
     }
 
-    // Login tpbank
-    @Bean
-    public String login() {
-        String url = "https://ebank.tpb.vn/gateway/api/auth/login";
-
+    private HttpHeaders initHttpRequest(){
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/json, text/plain, */*");
         headers.set("Accept-Encoding", "gzip, deflate, br, zstd");
@@ -49,6 +47,10 @@ public class PaymentConfiguration {
         headers.set("Referer", "https://ebank.tpb.vn");
         headers.set("Sec-Ch-Ua", "\"Microsoft Edge\";v=\"123\", \"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"123\"");
         headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0");
+        return headers;
+    }
+    public String login() {
+        String url = "https://ebank.tpb.vn/gateway/api/auth/login";
 
         String un = new String(Base64.getDecoder().decode(USERNAME));
         String pw = new String(Base64.getDecoder().decode(PASSWORD));
@@ -59,7 +61,7 @@ public class PaymentConfiguration {
         requestBody.add("step_2FA", "VERIFY");
         requestBody.add("username", un);
 
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(requestBody, initHttpRequest());
 
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, requestEntity, String.class);
@@ -75,39 +77,35 @@ public class PaymentConfiguration {
         }
     }
 
-    protected BankTransactionInfo[] getTransactions(String token) {
+    public BankTransactionInfo[] getTransactions() {
 
 //        // Vì sao phải check? vì khi login nhiều quá sẽ bị block ip nên phải kiểm tra khi nào token hết hạn thì gọi token mới
-//        if (tokenBank == null || lastLoginTime == null || lastLoginTime.plusMinutes(15).isBefore(LocalDateTime.now())) {
-//            tokenBank = login(); // Gọi hàm login() để lấy token mới
-//            lastLoginTime = LocalDateTime.now();
-//        }
-//        String token = tokenBank;
+        if (tokenBank == null || lastLoginTime == null || lastLoginTime.plusMinutes(15).isBefore(LocalDateTime.now())) {
+            tokenBank = login(); // Gọi hàm login() để lấy token mới
+            lastLoginTime = LocalDateTime.now();
+        }
+        String token = tokenBank;
         String url = "https://ebank.tpb.vn/gateway/api/smart-search-presentation-service/v2/account-transactions/find";
-        LocalDate date = LocalDate.now();
-        // Lấy ra ngày giờ hiện tại
-        String toDate = String.format("%d%02d%02d", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Accept", "application/json, text/plain, */*");
-        headers.set("Accept-Encoding", "gzip, deflate, br, zstd");
-        headers.set("Accept-Language", "en-US,en;q=0.9,vi;q=0.8");
-        headers.set("Device_id", "PDwAAkeiJplpQ2g2BEAvo8pQSdLAsry1xD9wS5w1YMGiS");
-        headers.set("Referer", "https://ebank.tpb.vn");
-        headers.set("Sec-Ch-Ua", "\"Microsoft Edge\";v=\"123\", \"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"123\"");
-        headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0");
+        LocalDate date = LocalDate.now();
+        LocalDate twoDaysBefore = date.minusDays(2);
+        // Lấy ra ngày giờ hiện tại
+        String toDateNow = String.format("%d%02d%02d", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
+        String to2DaysBefore = String.format("%d%02d%02d", twoDaysBefore.getYear(), twoDaysBefore.getMonthValue(), twoDaysBefore.getDayOfMonth());
+
+        HttpHeaders headers = initHttpRequest();
         headers.set("Authorization", "Bearer " + token);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         BankRequest transactionRequest = new BankRequest();
         transactionRequest.setAccountNo(BANK_NUMBER);
         transactionRequest.setCurrency("VND");
-        transactionRequest.setFromDate("20240118");
+        transactionRequest.setFromDate(to2DaysBefore);
         transactionRequest.setKeyword("");
         transactionRequest.setMaxAcentrysrno("");
         transactionRequest.setPageNumber(1);
         transactionRequest.setPageSize(5);
-        transactionRequest.setToDate(toDate);
+        transactionRequest.setToDate(toDateNow);
 
         // Chuyển đổi đối tượng Java thành JSON
         ObjectMapper objectMapper = new ObjectMapper();
@@ -133,5 +131,4 @@ public class PaymentConfiguration {
         }
         return null;
     }
-
 }

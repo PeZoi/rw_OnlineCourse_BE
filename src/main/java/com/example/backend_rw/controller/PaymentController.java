@@ -2,6 +2,7 @@ package com.example.backend_rw.controller;
 
 
 import com.example.backend_rw.entity.dto.payment.PaymentRequest;
+import com.example.backend_rw.entity.dto.payment.TransactionRequest;
 import com.example.backend_rw.service.PaymentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,5 +22,9 @@ public class PaymentController {
     @PostMapping("/get-info")
     public ResponseEntity<?> getPaymentInfo(@RequestBody PaymentRequest paymentRequest) {
         return ResponseEntity.ok(paymentService.getPaymentInfo(paymentRequest));
+    }
+    @PostMapping("/check-transaction")
+    public ResponseEntity<?> checkTransaction(@RequestBody TransactionRequest transactionRequest) {
+        return ResponseEntity.ok(paymentService.checkTransaction(transactionRequest));
     }
 }
