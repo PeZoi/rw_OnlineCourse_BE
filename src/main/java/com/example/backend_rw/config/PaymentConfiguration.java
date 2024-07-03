@@ -13,20 +13,15 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Base64;
 
 @Configuration
 public class PaymentConfiguration {
     @Value("${online.course.bank_number}")
     private String BANK_NUMBER;
-    @Value("${online.course.account_name}")
-    private String ACCOUNT_NAME;
-    @Value("${online.course.bank_branch}")
-    private String BANK_BRANCH;
-    @Value("${online.course.username")
+    @Value("${online.course.bank_username}")
     private String USERNAME;
-    @Value("${online.course.password")
+    @Value("${online.course.bank_password}")
     private String PASSWORD;
 
     // Lấy token của tpbank

@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 
 @Transactional
@@ -44,44 +43,39 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public ListReviewResponse listAllByCourse(Integer courseId) {
-        Courses courses = coursesRepository.findById(courseId)
-                .orElseThrow(() -> new NotFoundException("Course ID không tồn tại"));
+        Courses courses = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course ID không tồn tại"));
         List<Review> listReview = reviewRepository.findByCourses(courses);
         return convertToListReviewResponse(listReview);
     }
 
     @Override
     public String checkCustomerToReviewed(Integer userId, Integer courseId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
 
-        Courses courses = coursesRepository.findById(courseId)
-                .orElseThrow(() -> new NotFoundException("Course ID không tồn tại"));
+        Courses courses = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course ID không tồn tại"));
 
         // Kiểm tra user xem đã mua khoá học này chưa
-        if(orderRepository.existsOrderByCoursesAndUser(courses, user)){
+        if (orderRepository.existsOrderByCoursesAndUser(courses, user)) {
             // Kiểm tra xem user đã đánh giá khoá học này chưa
-            if(reviewRepository.existsReviewByUserAndCourses(user, courses)){
+            if (reviewRepository.existsReviewByUserAndCourses(user, courses)) {
                 throw new CustomException("Bạn đã đánh giá khóa học này trước đó!", HttpStatus.CONFLICT);
             }
             return "Bạn vui lòng đánh giá khóa học này!";
         }
-        throw new CustomException("Bạn đã đánh giá khóa học này trước đó!", HttpStatus.FORBIDDEN);
+        throw new CustomException("Bạn chưa mua khoá học này!", HttpStatus.FORBIDDEN);
     }
 
     @Override
     public ReviewResponse createReview(ReviewRequest reviewRequest) {
-        User user = userRepository.findById(reviewRequest.getUserId())
-                .orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
+        User user = userRepository.findById(reviewRequest.getUserId()).orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
 
-        Courses courses = coursesRepository.findById(reviewRequest.getCourseId())
-                .orElseThrow(() -> new NotFoundException("Courses ID không tồn tại"));
+        Courses courses = coursesRepository.findById(reviewRequest.getCourseId()).orElseThrow(() -> new NotFoundException("Courses ID không tồn tại"));
 
-        if(!orderRepository.existsOrderByCoursesAndUser(courses, user)){
+        if (!orderRepository.existsOrderByCoursesAndUser(courses, user)) {
             throw new CustomException("Tài khoản " + user.getUsername() + " chưa từng mua khóa học này!", HttpStatus.FORBIDDEN);
         }
 
-        if (reviewRepository.existsReviewByUserAndCourses(user, courses)){
+        if (reviewRepository.existsReviewByUserAndCourses(user, courses)) {
             throw new CustomException("Tài khoản " + user.getUsername() + " đã đánh giá khóa học này trước đó!", HttpStatus.CONFLICT);
         }
 
@@ -99,8 +93,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public String deleteReview(Integer reviewId) {
-        Review reviewInDB = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new NotFoundException("Review ID không tồn tại"));
+        Review reviewInDB = reviewRepository.findById(reviewId).orElseThrow(() -> new NotFoundException("Review ID không tồn tại"));
 
         reviewRepository.delete(reviewInDB);
         return "Xóa đánh giá thành công!";
@@ -109,9 +102,7 @@ public class ReviewServiceImpl implements ReviewService {
     // Convert danh sách review thành DTO
     private ListReviewResponse convertToListReviewResponse(List<Review> listReviews) {
         ListReviewResponse listReviewResponse = new ListReviewResponse();
-        listReviewResponse.setListResponses(
-                listReviews.stream().map(this::convertToReviewResponse).toList()
-        );
+        listReviewResponse.setListResponses(listReviews.stream().map(this::convertToReviewResponse).toList());
         int totalReview = listReviews.size();
         listReviewResponse.setTotalReview(totalReview);
         int totalRating = listReviews.stream().mapToInt(Review::getRating).sum();
