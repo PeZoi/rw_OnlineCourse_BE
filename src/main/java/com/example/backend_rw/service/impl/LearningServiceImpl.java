@@ -1,21 +1,21 @@
 package com.example.backend_rw.service.impl;
 
-import com.example.backend_rw.entity.Courses;
-import com.example.backend_rw.entity.Order;
-import com.example.backend_rw.entity.TrackCourse;
-import com.example.backend_rw.entity.User;
+import com.example.backend_rw.entity.*;
+import com.example.backend_rw.entity.dto.chapter.ChapterReturnDetailResponse;
+import com.example.backend_rw.entity.dto.course.CourseReturnLearningPageResponse;
 import com.example.backend_rw.entity.dto.course.CourseReturnMyLearning;
+import com.example.backend_rw.entity.dto.lesson.LessonReturnDetailResponse;
 import com.example.backend_rw.exception.NotFoundException;
-import com.example.backend_rw.repository.CoursesRepository;
-import com.example.backend_rw.repository.OrderRepository;
-import com.example.backend_rw.repository.TrackCourseRepository;
-import com.example.backend_rw.repository.UserRepository;
+import com.example.backend_rw.repository.*;
 import com.example.backend_rw.service.LearningService;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Transactional
@@ -26,13 +26,17 @@ public class LearningServiceImpl implements LearningService {
     private final TrackCourseRepository trackCourseRepository;
     private final CoursesRepository coursesRepository;
     private final OrderRepository orderRepository;
+    private final LessonRepository lessonRepository;
+    private final VideoRepository videoRepository;
 
-    public LearningServiceImpl(ModelMapper modelMapper, UserRepository userRepository, TrackCourseRepository trackCourseRepository, CoursesRepository coursesRepository, OrderRepository orderRepository) {
+    public LearningServiceImpl(ModelMapper modelMapper, UserRepository userRepository, TrackCourseRepository trackCourseRepository, CoursesRepository coursesRepository, OrderRepository orderRepository, LessonRepository lessonRepository, VideoRepository videoRepository) {
         this.modelMapper = modelMapper;
         this.userRepository = userRepository;
         this.trackCourseRepository = trackCourseRepository;
         this.coursesRepository = coursesRepository;
         this.orderRepository = orderRepository;
+        this.lessonRepository = lessonRepository;
+        this.videoRepository = videoRepository;
     }
 
     @Override
@@ -62,16 +66,73 @@ public class LearningServiceImpl implements LearningService {
 
     @Override
     public boolean isRegisterInThisCourse(String slug, String email) {
-        if(email != null){
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại"));
+        if (email != null) {
+            User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại"));
 
-            Courses courses = coursesRepository.findBySlug(slug)
-                    .orElseThrow(() -> new NotFoundException("Course slug không tồn tại"));
+            Courses courses = coursesRepository.findBySlug(slug).orElseThrow(() -> new NotFoundException("Course slug không tồn tại"));
 
             return orderRepository.existsOrderByCoursesAndUser(courses, user);
 
         }
         return false;
+    }
+
+    @Override
+    public CourseReturnLearningPageResponse getCourseReturnLearningPage(String slug) {
+        Courses coursesInDB = coursesRepository.findBySlug(slug).orElseThrow(() -> new NotFoundException("Course slug không tồn tại"));
+
+        CourseReturnLearningPageResponse course = modelMapper.map(coursesInDB, CourseReturnLearningPageResponse.class);
+        sortChapterAndLesson(course);
+        return course;
+    }
+
+    // Hàm sắp xếp lại chapter và lesson theo order
+    private void sortChapterAndLesson(CourseReturnLearningPageResponse course) {
+        int totalLessonInCourse = 0;
+        Duration durationInChapter = Duration.ZERO;
+
+        // Lấy ra chapters của course (theo DTO)
+        List<ChapterReturnDetailResponse> chapterList = course.getChapterList().stream().map(chapter -> modelMapper.map(chapter, ChapterReturnDetailResponse.class)).sorted(Comparator.comparingInt(ChapterReturnDetailResponse::getOrders)).toList();
+
+        int i = 1;
+        for (ChapterReturnDetailResponse chapter : chapterList) {
+            // Lây ra lessons của chapter đó
+            List<LessonReturnDetailResponse> listLesson = chapter.getLessonList();
+            // Sort lại lesson theo order
+            listLesson.sort(Comparator.comparingInt(LessonReturnDetailResponse::getOrders));
+
+            for (LessonReturnDetailResponse lesson : listLesson) {
+                // Nếu mà type lesson đó là dạng video
+                if (lesson.getLessonType().equals(LessonType.VIDEO)) {
+                    Lesson lessonInDB = lessonRepository.findById(lesson.getId()).get();
+                    Video video = videoRepository.findById(lessonInDB.getVideo().getId()).get();
+                    // Gán thời lượng là = thời lượng video
+                    lesson.setDuration(video.getDuration());
+
+                    // Tính toán thời lượng video
+                    durationInChapter = durationInChapter.plus(Duration.ofMinutes(video.getDuration().getMinute()).plusSeconds(video.getDuration().getSecond()));
+                } else {
+                    // Nếu type lesson không phải là dạng video thì mặc định sẽ gán duration là 1 phút
+                    LocalTime time = LocalTime.of(0, 1, 0);
+                    lesson.setDuration(time);
+
+                    durationInChapter = durationInChapter.plus(Duration.ofMinutes(1));
+                }
+                lesson.setOrders(i);
+                ++i;
+            }
+            // Gán tổng số bài học của 1 chapter
+            totalLessonInCourse += listLesson.size();
+            chapter.setTotalLesson(listLesson.size());
+
+            long hours = durationInChapter.toHours();
+            long minutes = durationInChapter.toMinutes();
+            long seconds = durationInChapter.minusMinutes(minutes).getSeconds();
+
+            // Tạo LocalTime từ số phút và số giây
+            LocalTime localTime = LocalTime.of((int) hours, (int) minutes, (int) seconds);
+            chapter.setDurationChapter(localTime);
+        }
+        course.setTotalLesson(totalLessonInCourse);
     }
 }

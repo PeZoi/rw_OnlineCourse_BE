@@ -16,10 +16,15 @@ public class LearningController {
         this.learningService = learningService;
     }
 
+    @GetMapping("/courses/{slug}")
+    public ResponseEntity<?> getDetailInLearningPage(@PathVariable(value = "slug") String slug) {
+        return ResponseEntity.ok(learningService.getCourseReturnLearningPage(slug));
+    }
+
     @GetMapping("/my/course/list-all")
-    public ResponseEntity<?> getListAllCourseMyLearning(@RequestParam(value = "email") String email){
+    public ResponseEntity<?> getListAllCourseMyLearning(@RequestParam(value = "email") String email) {
         List<CourseReturnMyLearning> listCourse = learningService.listAllCourseRegisteredByCustomer(email);
-        if(listCourse.isEmpty()){
+        if (listCourse.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
 
@@ -27,8 +32,7 @@ public class LearningController {
     }
 
     @GetMapping("/check/exist-course/{slug}")
-    public ResponseEntity<?> checkExistRegisterCourse(@PathVariable(value = "slug") String slug,
-                                                      @RequestParam(value = "email") String email){
+    public ResponseEntity<?> checkExistRegisterCourse(@PathVariable(value = "slug") String slug, @RequestParam(value = "email") String email) {
         return ResponseEntity.ok(learningService.isRegisterInThisCourse(slug, email));
     }
 }
