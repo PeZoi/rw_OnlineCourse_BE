@@ -5,10 +5,12 @@ import com.example.backend_rw.entity.dto.lesson.LessonReturnLearningResponse;
 import com.example.backend_rw.entity.dto.quiz.QuizReturnLearningPage;
 import com.example.backend_rw.entity.dto.track.InfoCourseRegistered;
 import com.example.backend_rw.entity.dto.track.TrackCourseResponse;
+import com.example.backend_rw.exception.CustomException;
 import com.example.backend_rw.exception.NotFoundException;
 import com.example.backend_rw.repository.*;
 import com.example.backend_rw.service.TrackCourseService;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Transactional
 @Service
@@ -68,20 +71,62 @@ public class TrackCourseServiceImpl implements TrackCourseService {
 
     @Override
     public LessonReturnLearningResponse getLesson(Integer lessonId) {
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new NotFoundException("Lesson ID không tồn tại"));
+        Lesson lesson = lessonRepository.findById(lessonId).orElseThrow(() -> new NotFoundException("Lesson ID không tồn tại"));
 
         LessonReturnLearningResponse lessonReturn = modelMapper.map(lesson, LessonReturnLearningResponse.class);
-        if(lessonReturn.getLessonType().toString().equals("QUIZ")){
+        if (lessonReturn.getLessonType().toString().equals("QUIZ")) {
             int i = 0;
-            for (QuizReturnLearningPage quiz : lessonReturn.getQuizList()){
+            for (QuizReturnLearningPage quiz : lessonReturn.getQuizList()) {
                 quiz.setOrder(++i);
-                if (quiz.getQuizType().toString().equals("PERFORATE")){
+                if (quiz.getQuizType().toString().equals("PERFORATE")) {
                     quiz.setAnswerList(null);
                 }
             }
         }
         return lessonReturn;
+    }
+
+    @Override
+    public Integer confirmLessonLearned(String email, Integer lessonIdPre) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại"));
+        Lesson lesson = lessonRepository.findById(lessonIdPre).orElseThrow(() -> new NotFoundException("Lesson ID không tồn tại"));
+
+        // Lấy ra bài học của user
+        TrackCourse trackCoursePre = trackCourseRepository.findByLessonAndUser(lesson, user);
+
+        // Nếu bài học đó chưa được mở
+        if (!trackCoursePre.isUnlock()) {
+            throw new CustomException("Bài học này chưa được mở khóa", HttpStatus.FORBIDDEN);
+        } else {
+            // Cập nhật lại trạng thái của bài đang học
+            trackCourseRepository.updateTrackCourseLessonPre(user.getId(), lessonIdPre);
+
+            // Tìm kiếm khoá học
+            Courses courses = trackCourseRepository.findTrackCourseByLessonAndUser(lesson, user).getCourses();
+            List<TrackCourse> listTrackCourses = sortTrackCourse(courses, user);
+            // Tìm ra xem bài học nào là bài học tiếp theo
+            Optional<Integer> lessonIdNext = listTrackCourses.stream().filter(track -> track.getLesson().getId().equals(lessonIdPre)).map(track -> {
+                int index = listTrackCourses.indexOf(track);
+                if (index != -1 && index < listTrackCourses.size() - 1) {
+                    return listTrackCourses.get(index + 1).getLesson().getId();
+                } else {
+                    return -1;
+                }
+            }).findFirst();
+
+            if (lessonIdNext.get() != -1) {
+                // Lấy ra bài học
+                Lesson lessonNext = lessonRepository.findById(lessonIdNext.get()).orElseThrow(() -> new NotFoundException("Lesson ID không tồn tại"));
+
+                // Lấy ra bài học của user
+                TrackCourse trackCourseNext = trackCourseRepository.findTrackCourseByLessonAndUser(lessonNext, user);
+                if (!trackCourseNext.isUnlock()) {
+                    // Cập nhật bài học (bài học tiếp theo sẽ được mở khoá)
+                    trackCourseRepository.updateTrackCourseLessonNext(user.getId(), lessonIdNext.get());
+                }
+            }
+            return lessonIdNext.get();
+        }
     }
 
     List<TrackCourse> sortTrackCourse(Courses courses, User user) {
