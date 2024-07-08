@@ -8,4 +8,6 @@ import java.util.List;
 public interface QAService {
     List<QAResponse> listAll(Integer lessonId);
     QAResponse createQA(QARequest qaRequest);
+    QAResponse updateQA(Integer qaId, String content);
+    String deleteQA(Integer qaId);
 }

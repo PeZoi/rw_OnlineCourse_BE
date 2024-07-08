@@ -24,4 +24,15 @@ public class QAController {
     public ResponseEntity<?> create(@RequestBody @Valid QARequest qaRequest){
         return new ResponseEntity<>(qaService.createQA(qaRequest), HttpStatus.CREATED);
     }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> update(@PathVariable(value = "id") Integer qaId,
+                                    @RequestParam(value = "content") String content){
+        return ResponseEntity.ok(qaService.updateQA(qaId, content));
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> delete(@PathVariable(value = "id") Integer qaId){
+        return ResponseEntity.ok(qaService.deleteQA(qaId));
+    }
 }

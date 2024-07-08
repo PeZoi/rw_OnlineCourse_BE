@@ -68,6 +68,20 @@ public class QAServiceImpl implements QAService {
         return convertToQAResponse(savedQA);
     }
 
+    @Override
+    public QAResponse updateQA(Integer qaId, String content) {
+        QA qaInDB = qaRepository.findById(qaId).orElseThrow(() -> new NotFoundException("QA ID không tồn tại"));
+        qaInDB.setContent(content);
+        return convertToQAResponse(qaRepository.save(qaInDB));
+    }
+
+    @Override
+    public String deleteQA(Integer qaId) {
+        QA qaInDB = qaRepository.findById(qaId).orElseThrow(() -> new NotFoundException("QA ID không tồn tại"));
+        qaRepository.delete(qaInDB);
+        return "Xóa bình luận (hỏi đáp) thành công!";
+    }
+
     private QAResponse convertToQAResponse(QA qa){
         QAResponse response = modelMapper.map(qa, QAResponse.class);
         response.setLessonId(qa.getLesson().getId());
