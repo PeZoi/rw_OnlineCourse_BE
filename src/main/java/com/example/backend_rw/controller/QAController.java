@@ -1,11 +1,11 @@
 package com.example.backend_rw.controller;
 
+import com.example.backend_rw.entity.dto.qa.QARequest;
 import com.example.backend_rw.service.QAService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/qa")
@@ -19,5 +19,9 @@ public class QAController {
     @GetMapping("/get-all")
     public ResponseEntity<?> listAll(@RequestParam(value = "lesson") Integer lessonId){
         return ResponseEntity.ok(qaService.listAll(lessonId));
+    }
+    @PostMapping("/create")
+    public ResponseEntity<?> create(@RequestBody @Valid QARequest qaRequest){
+        return new ResponseEntity<>(qaService.createQA(qaRequest), HttpStatus.CREATED);
     }
 }
