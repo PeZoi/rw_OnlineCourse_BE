@@ -2,16 +2,12 @@ package com.example.backend_rw.entity.dto.qa;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Setter
-@Getter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonPropertyOrder({"id", "content", "lessonId", "user_id", "username", "photo_user", "created_at_formatted", "parent_id", "children"})

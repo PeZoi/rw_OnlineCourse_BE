@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.time.Instant;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
