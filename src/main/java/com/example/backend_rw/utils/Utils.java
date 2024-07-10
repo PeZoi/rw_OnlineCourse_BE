@@ -19,4 +19,26 @@ public class Utils {
             return (seconds / 31536000) + " năm trước";
         }
     }
+
+    public static String removeVietnameseAccents(String input) {
+        String result = input;
+
+        // Remove Vietnamese accents
+        result = result.replaceAll("[àáạảãâầấậẩẫăằắặẳẵ]", "a");
+        result = result.replaceAll("[èéẹẻẽêềếệểễ]", "e");
+        result = result.replaceAll("[ìíịỉĩ]", "i");
+        result = result.replaceAll("[òóọỏõôồốộổỗơờớợởỡ]", "o");
+        result = result.replaceAll("[ùúụủũưừứựửữ]", "u");
+        result = result.replaceAll("[ỳýỵỷỹ]", "y");
+        result = result.replaceAll("đ", "d");
+
+        // Replace non-alphanumeric characters with empty string
+        result = result.replaceAll("[^a-zA-Z0-9\\s]", "");
+
+        // Trim and convert spaces to dashes
+        String slug = result.trim().toLowerCase();
+        slug = slug.replaceAll("\\s+", "-");
+
+        return slug;
+    }
 }

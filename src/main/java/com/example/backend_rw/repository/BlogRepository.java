@@ -12,4 +12,6 @@ import java.util.Optional;
 public interface BlogRepository extends JpaRepository<Blog, Integer> {
     List<Blog> findAllByUser(User user);
     Optional<Blog> findBySlug(String slug);
+    boolean existsBlogByTitle(String title);
+    boolean existsBlogBySlug(String slug);
 }

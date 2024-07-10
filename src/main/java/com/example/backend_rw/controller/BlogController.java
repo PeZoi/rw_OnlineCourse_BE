@@ -1,9 +1,13 @@
 package com.example.backend_rw.controller;
 
+import com.example.backend_rw.entity.dto.blog.BlogRequest;
 import com.example.backend_rw.entity.dto.blog.BlogResponse;
 import com.example.backend_rw.service.BlogService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -44,5 +48,11 @@ public class BlogController {
     @PutMapping("/update/view/{id}")
     public ResponseEntity<?> view(@PathVariable(value = "id") Integer blogId){
         return ResponseEntity.ok(blogService.view(blogId));
+    }
+
+    @PostMapping("/save")
+    public ResponseEntity<?> save(@RequestPart(value = "blog") @Valid BlogRequest blogRequest,
+                                  @RequestParam(value = "img") MultipartFile img){
+        return new ResponseEntity<>(blogService.save(blogRequest, img), HttpStatus.CREATED);
     }
 }
