@@ -55,4 +55,22 @@ public class BlogController {
                                   @RequestParam(value = "img") MultipartFile img){
         return new ResponseEntity<>(blogService.save(blogRequest, img), HttpStatus.CREATED);
     }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> update(@PathVariable(value = "id") Integer blogId,
+                                    @RequestPart(value = "blog") @Valid BlogRequest blogRequest,
+                                    @RequestParam(value = "img", required = false) MultipartFile img) {
+        return ResponseEntity.ok(blogService.update(blogId, blogRequest, img));
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> delete(@PathVariable(value = "id") Integer blogId){
+        return ResponseEntity.ok(blogService.delete(blogId));
+    }
+
+    @GetMapping("/check-author")
+    public ResponseEntity<?> checkAuthor(@RequestParam(value = "user") Integer userId,
+                                         @RequestParam(value = "blog") Integer blogId){
+        return ResponseEntity.ok(blogService.checkAuthorOfBlog(blogId, userId));
+    }
 }

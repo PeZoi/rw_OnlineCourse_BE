@@ -14,4 +14,5 @@ public interface BlogRepository extends JpaRepository<Blog, Integer> {
     Optional<Blog> findBySlug(String slug);
     boolean existsBlogByTitle(String title);
     boolean existsBlogBySlug(String slug);
+    Blog findBlogByTitleOrSlug(String title, String slug);
 }

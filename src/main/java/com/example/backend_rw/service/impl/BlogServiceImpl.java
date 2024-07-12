@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 @Transactional
 @Service
@@ -39,11 +40,10 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public BlogResponse save(BlogRequest blogRequest, MultipartFile img) {
-        User user = userRepository.findById(blogRequest.getUserId())
-                .orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
+        User user = userRepository.findById(blogRequest.getUserId()).orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
 
-        if(blogRepository.existsBlogByTitle(blogRequest.getTitle())){
-            throw new CustomException( "Tên blog này đã tồn tại!", HttpStatus.CONFLICT);
+        if (blogRepository.existsBlogByTitle(blogRequest.getTitle())) {
+            throw new CustomException("Tên blog này đã tồn tại!", HttpStatus.CONFLICT);
         }
 
         Blog blog = modelMapper.map(blogRequest, Blog.class);
@@ -51,8 +51,8 @@ public class BlogServiceImpl implements BlogService {
         blog.setCreatedAt(Instant.now());
 
         String slug = Utils.removeVietnameseAccents(blogRequest.getTitle());
-        if(blogRepository.existsBlogBySlug(slug)){
-            throw new CustomException( "Vui lòng thay đổi tên blog: Tên Slug bị trùng", HttpStatus.CONFLICT);
+        if (blogRepository.existsBlogBySlug(slug)) {
+            throw new CustomException("Vui lòng thay đổi tên blog: Tên Slug bị trùng", HttpStatus.CONFLICT);
         }
         blog.setSlug(slug);
 
@@ -71,8 +71,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public List<BlogResponse> getAllByUser(Integer userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
 
         List<Blog> listBlogs = blogRepository.findAllByUser(user);
         return listBlogs.stream().map(this::convertToBlogResponse).toList();
@@ -86,8 +85,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public String view(Integer blogId) {
-        Blog blogInDB = blogRepository.findById(blogId)
-                .orElseThrow(() -> new NotFoundException("Blog ID không tồn tại"));
+        Blog blogInDB = blogRepository.findById(blogId).orElseThrow(() -> new NotFoundException("Blog ID không tồn tại"));
         int view = blogInDB.getView();
 
         blogInDB.setView(++view);
@@ -95,6 +93,58 @@ public class BlogServiceImpl implements BlogService {
         blogRepository.save(blogInDB);
 
         return "Cập nhật lượt xem thành công";
+    }
+
+    @Override
+    public BlogResponse update(Integer blogId, BlogRequest blogRequest, MultipartFile img) {
+        Blog blogInDB = blogRepository.findById(blogId).orElseThrow(() -> new NotFoundException("Blog ID không tồn tại"));
+
+        if (!Objects.equals(blogRequest.getUserId(), blogInDB.getUser().getId())) {
+            throw new CustomException("Bạn không phải tác giả bài viết nên không thể truy cập tính năng này!", HttpStatus.FORBIDDEN);
+        }
+
+        String slug = Utils.removeVietnameseAccents(blogRequest.getTitle());
+
+        Blog checkBlogDuplicate = blogRepository.findBlogByTitleOrSlug(blogRequest.getTitle(), slug);
+        if (checkBlogDuplicate != null) {
+            if (!(Objects.equals(blogInDB.getId(), checkBlogDuplicate.getId()))) {
+                throw new CustomException("Tên blog/slug đã tồn tại trước đây", HttpStatus.CONFLICT);
+            }
+        }
+
+        blogInDB.setSlug(slug);
+
+        if (img != null) {
+            uploadFile.deleteImageInCloudinary(blogInDB.getThumbnail());
+
+            String thumbnail = uploadFile.uploadFileOnCloudinary(img);
+            blogInDB.setThumbnail(thumbnail);
+        }
+        blogInDB.setTitle(blogRequest.getTitle());
+        blogInDB.setContent(blogRequest.getContent());
+        blogInDB.setDescription(blogRequest.getDescription());
+
+        Blog savedBlog = blogRepository.save(blogInDB);
+        return convertToBlogResponse(savedBlog);
+    }
+
+    @Override
+    public String delete(Integer blogId) {
+        Blog blogInDB = blogRepository.findById(blogId).orElseThrow(() -> new NotFoundException("Blog ID không tồn tại"));
+
+        blogRepository.delete(blogInDB);
+
+        return "SUCCESS";
+    }
+
+    @Override
+    public String checkAuthorOfBlog(Integer blogId, Integer userId) {
+        Blog blogInDB = blogRepository.findById(blogId).orElseThrow(() -> new NotFoundException("Blog ID không tồn tại"));
+
+        if (!Objects.equals(userId, blogInDB.getUser().getId())) {
+            throw new CustomException("Bạn không phải tác giả bài viết nên không thể truy cập tính năng này!", HttpStatus.FORBIDDEN);
+        }
+        return "SUCCESS";
     }
 
     private BlogResponse convertToBlogResponse(Blog savedBlog) {

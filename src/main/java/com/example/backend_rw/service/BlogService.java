@@ -12,4 +12,7 @@ public interface BlogService {
     List<BlogResponse> getAllByUser(Integer userId);
     BlogResponse get(String slug);
     String view(Integer blogId);
+    BlogResponse update(Integer blogId, BlogRequest blogRequest, MultipartFile img);
+    String delete(Integer blogId);
+    String checkAuthorOfBlog(Integer blogId, Integer userId);
 }
