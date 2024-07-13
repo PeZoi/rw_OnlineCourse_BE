@@ -8,4 +8,5 @@ import java.util.List;
 public interface ContestService {
     List<ContestResponse> listAll();
     ContestReturnInTest joinTest(Integer contestId);
+    List<ContestResponse> search(String keyword);
 }

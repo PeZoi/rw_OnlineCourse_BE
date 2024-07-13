@@ -73,4 +73,13 @@ public class BlogController {
                                          @RequestParam(value = "blog") Integer blogId){
         return ResponseEntity.ok(blogService.checkAuthorOfBlog(blogId, userId));
     }
+    @GetMapping("/search")
+    public ResponseEntity<?> search(@RequestParam(value = "keyword") String keyword){
+        List<BlogResponse> listBlogs = blogService.search(keyword);
+        if(listBlogs.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(listBlogs);
+    }
 }

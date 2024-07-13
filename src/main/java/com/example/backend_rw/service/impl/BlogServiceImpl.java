@@ -147,6 +147,12 @@ public class BlogServiceImpl implements BlogService {
         return "SUCCESS";
     }
 
+    @Override
+    public List<BlogResponse> search(String keyword) {
+        List<Blog> listBlogs = blogRepository.search(keyword);
+        return listBlogs.stream().map(this::convertToBlogResponse).toList();
+    }
+
     private BlogResponse convertToBlogResponse(Blog savedBlog) {
         BlogResponse response = modelMapper.map(savedBlog, BlogResponse.class);
         Instant now = Instant.now();

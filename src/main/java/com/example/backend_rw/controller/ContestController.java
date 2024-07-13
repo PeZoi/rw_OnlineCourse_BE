@@ -5,10 +5,7 @@ import com.example.backend_rw.entity.dto.record.RecordReturnInRank;
 import com.example.backend_rw.service.ContestService;
 import com.example.backend_rw.service.RecordService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -45,5 +42,13 @@ public class ContestController {
     @GetMapping("/join/{contest_id}")
     public ResponseEntity<?> join(@PathVariable(value = "contest_id") Integer contestId){
         return ResponseEntity.ok(contestService.joinTest(contestId));
+    }
+    @GetMapping("/search")
+    public ResponseEntity<?> search(@RequestParam(value = "keyword") String keyword){
+        List<ContestResponse> listContest = contestService.search(keyword);
+        if(listContest.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(listContest);
     }
 }

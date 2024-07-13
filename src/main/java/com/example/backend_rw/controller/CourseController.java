@@ -1,6 +1,7 @@
 package com.example.backend_rw.controller;
 
 import com.example.backend_rw.entity.dto.course.CourseReturnHomePageResponse;
+import com.example.backend_rw.entity.dto.course.CourseReturnSearch;
 import com.example.backend_rw.service.CourseService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,5 +29,13 @@ public class CourseController {
     @GetMapping("/get-detail/{slug}")
     public ResponseEntity<?> getCourseDetailById(@PathVariable(value = "slug") String slug){
         return ResponseEntity.ok(courseService.getCourseDetail(slug));
+    }
+    @GetMapping("/search")
+    public ResponseEntity<?> search(@RequestParam(value = "keyword") String keyword){
+        List<CourseReturnSearch> listCourses = courseService.listAllCourseByKeyword(keyword);
+        if(listCourses.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(listCourses);
     }
 }

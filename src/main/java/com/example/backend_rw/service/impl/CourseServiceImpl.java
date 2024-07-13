@@ -4,6 +4,7 @@ import com.example.backend_rw.entity.*;
 import com.example.backend_rw.entity.dto.chapter.ChapterReturnDetailResponse;
 import com.example.backend_rw.entity.dto.course.CourseReturnDetailPageResponse;
 import com.example.backend_rw.entity.dto.course.CourseReturnHomePageResponse;
+import com.example.backend_rw.entity.dto.course.CourseReturnSearch;
 import com.example.backend_rw.entity.dto.lesson.LessonReturnDetailResponse;
 import com.example.backend_rw.exception.NotFoundException;
 import com.example.backend_rw.repository.CategoryRepository;
@@ -73,6 +74,23 @@ public class CourseServiceImpl implements CourseService {
         CourseReturnDetailPageResponse response = modelMapper.map(course, CourseReturnDetailPageResponse.class);
         sortChapterAndLesson(response);
         return response;
+    }
+
+    @Override
+    public List<CourseReturnSearch> listAllCourseByKeyword(String keyword) {
+        List<Courses> listCourses = coursesRepository.search(keyword);
+
+        return listCourses.stream().map(
+                courses -> {
+                    CourseReturnSearch response = modelMapper.map(courses, CourseReturnSearch.class);
+                    int totalReview = courses.getListReviews().size();
+                    int totalRating = courses.getListReviews().stream().mapToInt(Review::getRating).sum();
+                    double averageRating = (double) totalRating / totalReview;
+                    averageRating = Math.round(averageRating * 10.0) / 10.0;
+                    response.setAverageReview(averageRating);
+                    return response;
+                }
+        ).toList();
     }
 
     // Hàm sắp xếp lại chapter và lesson theo order

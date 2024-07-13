@@ -15,4 +15,5 @@ public interface BlogService {
     BlogResponse update(Integer blogId, BlogRequest blogRequest, MultipartFile img);
     String delete(Integer blogId);
     String checkAuthorOfBlog(Integer blogId, Integer userId);
+    List<BlogResponse> search(String keyword);
 }
