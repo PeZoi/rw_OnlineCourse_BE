@@ -2,6 +2,7 @@ package com.example.backend_rw.service.impl;
 
 import com.example.backend_rw.entity.Role;
 import com.example.backend_rw.entity.User;
+import com.example.backend_rw.entity.dto.CheckValidateCustomerRequest;
 import com.example.backend_rw.entity.dto.auth.JWTAuthResponse;
 import com.example.backend_rw.entity.dto.auth.LoginDTO;
 import com.example.backend_rw.entity.dto.user.UserRequest;
@@ -28,6 +29,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @Transactional
 @Service
@@ -154,5 +157,21 @@ public class AuthServiceImpl implements AuthService {
         user.setResetPasswordToken(null);
 
         userRepository.save(user);
+    }
+
+    @Override
+    public Map<String, String> checkInfoOfCustomer(CheckValidateCustomerRequest request) {
+        Map<String, String> errors = new HashMap<>();
+        if (userRepository.existsByEmail(request.getEmail())) {
+            errors.put("email", "Email đã tồn tại");
+        }
+        if (userRepository.existsByUsername(request.getUsername())) {
+            errors.put("username", "Username đã tồn tại");
+        }
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            errors.put("phoneNumber", "Số điện thoại đã tồn tại");
+        }
+
+        return errors;
     }
 }
