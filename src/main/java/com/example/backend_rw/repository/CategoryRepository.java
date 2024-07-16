@@ -9,6 +9,12 @@ import java.util.List;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
+    boolean existsCategoriesByName(String name);
+
+    boolean existsCategoriesBySlug(String slug);
+
     @Query("select c from Category c where c.name like %?1%")
     List<Category> search(String keyword);
+
+    Category findByNameOrSlug(String name, String slug);
 }
