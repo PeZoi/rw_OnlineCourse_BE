@@ -1,5 +1,6 @@
 package com.example.backend_rw.controller;
 
+import com.example.backend_rw.entity.dto.course.CourseResponse;
 import com.example.backend_rw.entity.dto.course.CourseReturnHomePageResponse;
 import com.example.backend_rw.entity.dto.course.CourseReturnSearch;
 import com.example.backend_rw.service.CourseService;
@@ -18,12 +19,24 @@ public class CourseController {
     }
 
     @GetMapping("/home-page")
-    public ResponseEntity<?> getCourseReturnHomePage(@RequestParam(value = "categoryId", required = false) Integer categoryId){
+    public ResponseEntity<List<CourseReturnHomePageResponse>> getCourseReturnHomePage(@RequestParam(value = "categoryId", required = false) Integer categoryId){
         List<CourseReturnHomePageResponse> listCourses = courseService.getCourseIntoHomePage(categoryId);
         if(listCourses.isEmpty()){
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(listCourses);
+    }
+
+    @GetMapping("/list-all")
+    public ResponseEntity<List<CourseResponse>> listAllCourses(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "categoryId", required = false) Integer categoryId
+    ){
+        List<CourseResponse> courseResponses = courseService.getAll();
+        if(courseResponses.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(courseResponses);
     }
 
     @GetMapping("/get-detail/{slug}")

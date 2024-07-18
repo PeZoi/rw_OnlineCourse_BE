@@ -2,6 +2,7 @@ package com.example.backend_rw.service.impl;
 
 import com.example.backend_rw.entity.*;
 import com.example.backend_rw.entity.dto.chapter.ChapterReturnDetailResponse;
+import com.example.backend_rw.entity.dto.course.CourseResponse;
 import com.example.backend_rw.entity.dto.course.CourseReturnDetailPageResponse;
 import com.example.backend_rw.entity.dto.course.CourseReturnHomePageResponse;
 import com.example.backend_rw.entity.dto.course.CourseReturnSearch;
@@ -91,6 +92,25 @@ public class CourseServiceImpl implements CourseService {
                     return response;
                 }
         ).toList();
+    }
+
+    @Override
+    public List<CourseResponse> getAll() {
+        List<Courses> coursesList = coursesRepository.findAll();
+        return coursesList.stream().map(this::convertToCourseResponse).toList();
+    }
+
+    private CourseResponse convertToCourseResponse(Courses course) {
+        CourseResponse courseResponse = modelMapper.map(course, CourseResponse.class);
+        int totalReview = course.getListReviews().size();
+        int totalRating = course.getListReviews().stream().mapToInt(Review::getRating).sum();
+        double averageRating = (double) totalRating / totalReview;
+        averageRating = Math.round(averageRating * 10.0) / 10.0;
+        courseResponse.setTotalReview(totalReview);
+        courseResponse.setAverageReview(averageRating);
+        courseResponse.setChapterList(null);
+        courseResponse.setInfoList(null);
+        return courseResponse;
     }
 
     // Hàm sắp xếp lại chapter và lesson theo order
