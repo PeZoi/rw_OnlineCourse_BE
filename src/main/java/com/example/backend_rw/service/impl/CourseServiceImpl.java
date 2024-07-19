@@ -81,23 +81,46 @@ public class CourseServiceImpl implements CourseService {
     public List<CourseReturnSearch> listAllCourseByKeyword(String keyword) {
         List<Courses> listCourses = coursesRepository.search(keyword);
 
-        return listCourses.stream().map(
-                courses -> {
-                    CourseReturnSearch response = modelMapper.map(courses, CourseReturnSearch.class);
-                    int totalReview = courses.getListReviews().size();
-                    int totalRating = courses.getListReviews().stream().mapToInt(Review::getRating).sum();
-                    double averageRating = (double) totalRating / totalReview;
-                    averageRating = Math.round(averageRating * 10.0) / 10.0;
-                    response.setAverageReview(averageRating);
-                    return response;
-                }
-        ).toList();
+        return listCourses.stream().map(courses -> {
+            CourseReturnSearch response = modelMapper.map(courses, CourseReturnSearch.class);
+            int totalReview = courses.getListReviews().size();
+            int totalRating = courses.getListReviews().stream().mapToInt(Review::getRating).sum();
+            double averageRating = (double) totalRating / totalReview;
+            averageRating = Math.round(averageRating * 10.0) / 10.0;
+            response.setAverageReview(averageRating);
+            return response;
+        }).toList();
     }
 
     @Override
     public List<CourseResponse> getAll() {
         List<Courses> coursesList = coursesRepository.findAll();
         return coursesList.stream().map(this::convertToCourseResponse).toList();
+    }
+
+    @Override
+    public String updateIsEnabled(Integer courseId, boolean isEnabled) {
+        Courses courses = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Courses ID không tồn tại"));
+
+        coursesRepository.switchEnabled(courseId, isEnabled);
+
+        return "SUCCESS";
+    }
+
+    @Override
+    public String updateIsPublished(Integer courseId, boolean isPublished) {
+        Courses courses = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Courses ID không tồn tại"));
+
+        coursesRepository.switchPublished(courseId, isPublished);
+        return "SUCCESS";
+    }
+
+    @Override
+    public String updateIsFinished(Integer courseId, boolean isFinished) {
+        Courses courses = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Courses ID không tồn tại"));
+
+        coursesRepository.switchFinished(courseId, isFinished);
+        return "SUCCESS";
     }
 
     private CourseResponse convertToCourseResponse(Courses course) {
