@@ -11,6 +11,10 @@ import java.util.Optional;
 
 @Repository
 public interface CoursesRepository extends JpaRepository<Courses, Integer> {
+    boolean existsCoursesByTitle(String title);
+
+    boolean existsCoursesBySlug(String slug);
+
     List<Courses> findAllByCategoryId(int categoryId);
 
     Optional<Courses> findBySlug(String slug);

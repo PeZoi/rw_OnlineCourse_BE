@@ -1,9 +1,7 @@
 package com.example.backend_rw.service;
 
-import com.example.backend_rw.entity.dto.course.CourseResponse;
-import com.example.backend_rw.entity.dto.course.CourseReturnDetailPageResponse;
-import com.example.backend_rw.entity.dto.course.CourseReturnHomePageResponse;
-import com.example.backend_rw.entity.dto.course.CourseReturnSearch;
+import com.example.backend_rw.entity.dto.course.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,4 +19,8 @@ public interface CourseService {
     String updateIsPublished(Integer courseId, boolean isPublished);
 
     String updateIsFinished(Integer courseId, boolean isFinished);
+
+    CourseResponse create(CoursesRequest coursesRequest, MultipartFile image);
+
+    CourseResponse get(Integer courseId);
 }

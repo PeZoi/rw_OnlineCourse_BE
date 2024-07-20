@@ -3,10 +3,14 @@ package com.example.backend_rw.controller;
 import com.example.backend_rw.entity.dto.course.CourseResponse;
 import com.example.backend_rw.entity.dto.course.CourseReturnHomePageResponse;
 import com.example.backend_rw.entity.dto.course.CourseReturnSearch;
+import com.example.backend_rw.entity.dto.course.CoursesRequest;
 import com.example.backend_rw.service.CourseService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -63,5 +67,18 @@ public class CourseController {
     @PostMapping("/switch-finished")
     public ResponseEntity<?> updateIsFinished(@RequestParam(value = "course") Integer courseId, @RequestParam(value = "finished") boolean isFinished) {
         return ResponseEntity.ok(courseService.updateIsFinished(courseId, isFinished));
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<?> createCourse(@RequestPart(value = "course") @Valid CoursesRequest coursesRequest, @RequestParam(value = "img") MultipartFile img) {
+        CourseResponse courseResponse = courseService.create(coursesRequest, img);
+        URI uri = URI.create("/api/courses/create/" + courseResponse.getId());
+
+        return ResponseEntity.created(uri).body(courseResponse);
+    }
+
+    @GetMapping("/get/{id}")
+    public ResponseEntity<CourseResponse> getCourseById(@PathVariable(value = "id") Integer courseId) {
+        return ResponseEntity.ok(courseService.get(courseId));
     }
 }

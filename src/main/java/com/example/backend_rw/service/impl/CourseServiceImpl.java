@@ -1,23 +1,28 @@
 package com.example.backend_rw.service.impl;
 
 import com.example.backend_rw.entity.*;
+import com.example.backend_rw.entity.dto.chapter.ChapterDTO;
 import com.example.backend_rw.entity.dto.chapter.ChapterReturnDetailResponse;
-import com.example.backend_rw.entity.dto.course.CourseResponse;
-import com.example.backend_rw.entity.dto.course.CourseReturnDetailPageResponse;
-import com.example.backend_rw.entity.dto.course.CourseReturnHomePageResponse;
-import com.example.backend_rw.entity.dto.course.CourseReturnSearch;
+import com.example.backend_rw.entity.dto.course.*;
+import com.example.backend_rw.entity.dto.lesson.LessonResponse;
 import com.example.backend_rw.entity.dto.lesson.LessonReturnDetailResponse;
+import com.example.backend_rw.exception.CustomException;
 import com.example.backend_rw.exception.NotFoundException;
 import com.example.backend_rw.repository.CategoryRepository;
 import com.example.backend_rw.repository.CoursesRepository;
 import com.example.backend_rw.repository.LessonRepository;
 import com.example.backend_rw.repository.VideoRepository;
 import com.example.backend_rw.service.CourseService;
+import com.example.backend_rw.utils.UploadFile;
+import com.example.backend_rw.utils.Utils;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
@@ -27,13 +32,15 @@ import java.util.stream.Collectors;
 @Service
 public class CourseServiceImpl implements CourseService {
     private final ModelMapper modelMapper;
+    private final UploadFile uploadFile;
     private final CoursesRepository coursesRepository;
     private final CategoryRepository categoryRepository;
     private final LessonRepository lessonRepository;
     private final VideoRepository videoRepository;
 
-    public CourseServiceImpl(ModelMapper modelMapper, CoursesRepository coursesRepository, CategoryRepository categoryRepository, LessonRepository lessonRepository, VideoRepository videoRepository) {
+    public CourseServiceImpl(ModelMapper modelMapper, UploadFile uploadFile, CoursesRepository coursesRepository, CategoryRepository categoryRepository, LessonRepository lessonRepository, VideoRepository videoRepository) {
         this.modelMapper = modelMapper;
+        this.uploadFile = uploadFile;
         this.coursesRepository = coursesRepository;
         this.categoryRepository = categoryRepository;
         this.lessonRepository = lessonRepository;
@@ -123,6 +130,45 @@ public class CourseServiceImpl implements CourseService {
         return "SUCCESS";
     }
 
+    @Override
+    public CourseResponse create(CoursesRequest coursesRequest, MultipartFile image) {
+        if (coursesRepository.existsCoursesByTitle(coursesRequest.getTitle())) {
+            throw new CustomException("Tên khóa học đã tồn tại!", HttpStatus.CONFLICT);
+        }
+
+        if (coursesRepository.existsCoursesBySlug(coursesRequest.getSlug())) {
+            throw new CustomException("Slug khóa học đã tồn tại!", HttpStatus.CONFLICT);
+        }
+
+        Category category = categoryRepository.findById(coursesRequest.getCategoryId()).orElseThrow(() -> new NotFoundException("Category ID không tồn tại"));
+
+        Courses courses = new Courses();
+
+        convertSomeAttributeToEntity(courses, coursesRequest);
+
+        String thumbnail = uploadFile.uploadFileOnCloudinary(image);
+        courses.setThumbnail(thumbnail);
+
+        courses.setCategory(category);
+
+        for (CourseInfoRequest request : coursesRequest.getInfoList()) {
+            courses.addInfoList(request.getValue(), InformationType.valueOf(request.getType()));
+        }
+
+        Courses savedCourse = coursesRepository.save(courses);
+
+        return modelMapper.map(savedCourse, CourseResponse.class);
+    }
+
+    @Override
+    public CourseResponse get(Integer courseId) {
+        Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Category ID không tồn tại"));
+
+        CourseResponse response = modelMapper.map(course, CourseResponse.class);
+        sortChapterAndLesson(response);
+        return response;
+    }
+
     private CourseResponse convertToCourseResponse(Courses course) {
         CourseResponse courseResponse = modelMapper.map(course, CourseResponse.class);
         int totalReview = course.getListReviews().size();
@@ -134,6 +180,35 @@ public class CourseServiceImpl implements CourseService {
         courseResponse.setChapterList(null);
         courseResponse.setInfoList(null);
         return courseResponse;
+    }
+
+    private void convertSomeAttributeToEntity(Courses courses, CoursesRequest request) {
+        courses.setTitle(request.getTitle());
+        String slug = Utils.removeVietnameseAccents(request.getTitle());
+        courses.setSlug(slug);
+        courses.setDescription(request.getDescription());
+        courses.setPrice(request.getPrice());
+        courses.setDiscount(request.getDiscount());
+        courses.setEnabled(request.isEnabled());
+        courses.setPublished(request.isPublished());
+        courses.setFinished(request.isFinished());
+        if (request.isPublished()) {
+            courses.setPublishedAt(Instant.now());
+        }
+    }
+
+    private void sortChapterAndLesson(CourseResponse response) {
+        int totalLessonInCourse = 0;
+        List<ChapterDTO> chapterList = response.getChapterList();
+        response.setTotalChapter(chapterList.size());
+        chapterList.sort(Comparator.comparingInt(ChapterDTO::getOrders));
+        for (ChapterDTO chapterDTO : chapterList) {
+            List<LessonResponse> listLesson = chapterDTO.getLessonList();
+            listLesson.sort(Comparator.comparingInt(LessonResponse::getOrders));
+            totalLessonInCourse += listLesson.size();
+            chapterDTO.setTotalLesson(listLesson.size());
+        }
+        response.setTotalLesson(totalLessonInCourse);
     }
 
     // Hàm sắp xếp lại chapter và lesson theo order
