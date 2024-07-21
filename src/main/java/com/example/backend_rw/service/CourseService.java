@@ -23,4 +23,6 @@ public interface CourseService {
     CourseResponse create(CoursesRequest coursesRequest, MultipartFile image);
 
     CourseResponse get(Integer courseId);
+
+    CourseResponse update(Integer courseId, CoursesRequest coursesRequest, MultipartFile img);
 }

@@ -24,8 +24,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -146,8 +148,10 @@ public class CourseServiceImpl implements CourseService {
 
         convertSomeAttributeToEntity(courses, coursesRequest);
 
+
         String thumbnail = uploadFile.uploadFileOnCloudinary(image);
         courses.setThumbnail(thumbnail);
+
 
         courses.setCategory(category);
 
@@ -167,6 +171,49 @@ public class CourseServiceImpl implements CourseService {
         CourseResponse response = modelMapper.map(course, CourseResponse.class);
         sortChapterAndLesson(response);
         return response;
+    }
+
+    @Override
+    public CourseResponse update(Integer courseId, CoursesRequest coursesRequest, MultipartFile img) {
+        Courses courseInDB = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course ID không tồn tại"));
+
+        Category categoryInDB = categoryRepository.findById(coursesRequest.getCategoryId()).orElseThrow(() -> new NotFoundException("Category ID không tồn tại"));
+
+        Courses courses = coursesRepository.findByTitleOrSlug(coursesRequest.getTitle(), coursesRequest.getSlug());
+
+        if (courses != null) {
+            if (!Objects.equals(courses.getId(), courseInDB.getId())) {
+                throw new CustomException("Tên/Slug khóa học đã tồn tại trước đó", HttpStatus.CONFLICT);
+            }
+        }
+
+        if (img != null) {
+            uploadFile.deleteImageInCloudinary(courseInDB.getThumbnail());
+            String url = uploadFile.uploadFileOnCloudinary(img);
+            courseInDB.setThumbnail(url);
+        }
+
+        convertSomeAttributeToEntity(courseInDB, coursesRequest);
+
+        courseInDB.setCategory(categoryInDB);
+
+        List<CourseInfo> infoList = new ArrayList<>();
+
+        for (CourseInfoRequest request : coursesRequest.getInfoList()) {
+            CourseInfo info = null;
+            if (request.getId() != null) {
+                info = new CourseInfo(request.getId(), request.getValue(), InformationType.valueOf(request.getType()), courseInDB);
+            } else {
+                info = new CourseInfo(request.getValue(), InformationType.valueOf(request.getType()), courseInDB);
+            }
+            infoList.add(info);
+        }
+
+        courseInDB.setInfoList(infoList);
+
+        Courses savedCourse = coursesRepository.save(courseInDB);
+
+        return modelMapper.map(savedCourse, CourseResponse.class);
     }
 
     private CourseResponse convertToCourseResponse(Courses course) {

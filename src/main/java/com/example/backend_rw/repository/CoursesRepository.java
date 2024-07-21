@@ -19,6 +19,8 @@ public interface CoursesRepository extends JpaRepository<Courses, Integer> {
 
     Optional<Courses> findBySlug(String slug);
 
+    Courses findByTitleOrSlug(String title, String slug);
+
     @Query("select c from Courses c where c.isEnabled = true and concat(c.title, ' ', c.category.name) like %?1% ")
     List<Courses> search(String keyword);
 
@@ -33,5 +35,6 @@ public interface CoursesRepository extends JpaRepository<Courses, Integer> {
     @Modifying
     @Query("update Courses c set c.isPublished =?2, c.publishedAt = case " + "when ?2 = true then current_timestamp() else null end where c.id =?1")
     void switchPublished(Integer courseId, boolean isPublished);
+
 
 }

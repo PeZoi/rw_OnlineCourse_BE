@@ -81,4 +81,9 @@ public class CourseController {
     public ResponseEntity<CourseResponse> getCourseById(@PathVariable(value = "id") Integer courseId) {
         return ResponseEntity.ok(courseService.get(courseId));
     }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<CourseResponse> updateCourse(@PathVariable(value = "id") Integer courseId, @RequestPart(value = "course") @Valid CoursesRequest coursesRequest, @RequestParam(value = "img", required = false) MultipartFile img) {
+        return ResponseEntity.ok(courseService.update(courseId, coursesRequest, img));
+    }
 }
