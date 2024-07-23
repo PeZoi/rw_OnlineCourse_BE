@@ -1,5 +1,12 @@
 package com.example.backend_rw.utils;
 
+import com.example.backend_rw.entity.Quiz;
+import com.example.backend_rw.entity.QuizType;
+import com.example.backend_rw.entity.dto.quiz.AnswerDto;
+import com.example.backend_rw.entity.dto.quiz.QuizRequest;
+import com.example.backend_rw.exception.CustomException;
+import org.springframework.http.HttpStatus;
+
 import java.time.Duration;
 
 public class Utils {
@@ -40,5 +47,25 @@ public class Utils {
         slug = slug.replaceAll("\\s+", "-");
 
         return slug;
+    }
+
+    public static Quiz convertToQuizEntity(QuizRequest quizRequest) {
+        Quiz quiz = new Quiz();
+        quiz.setQuestion(quizRequest.getQuestion());
+        quiz.setQuizType(QuizType.valueOf(quizRequest.getQuizType()));
+
+        boolean flag = false;
+
+        for (AnswerDto answerDto : quizRequest.getAnswerList()) {
+            if (answerDto.isCorrect()) {
+                flag = true;
+            }
+            quiz.add(answerDto.getContent(), answerDto.isCorrect());
+        }
+
+        if (!flag) {
+            throw new CustomException("Không có câu trả lời đúng trong danh sách câu trả lời!", HttpStatus.BAD_REQUEST);
+        }
+        return quiz;
     }
 }

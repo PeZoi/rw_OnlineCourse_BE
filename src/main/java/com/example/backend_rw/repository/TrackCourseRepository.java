@@ -25,4 +25,7 @@ public interface TrackCourseRepository extends JpaRepository<TrackCourse, Intege
     void updateTrackCourseLessonNext(Integer userId, Integer lessonIdNext);
 
     TrackCourse findTrackCourseByLessonAndUser(Lesson lesson, User user);
+
+    @Query("select tc from TrackCourse tc where tc.courses.id = ?1 and tc.user.id = ?2 and tc.isCurrent = true")
+    TrackCourse findTrackCoursesByCurrent(Integer courseId, Integer userId);
 }
