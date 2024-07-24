@@ -3,6 +3,7 @@ package com.example.backend_rw.service.impl;
 import com.example.backend_rw.entity.Video;
 import com.example.backend_rw.entity.dto.VideoDTO;
 import com.example.backend_rw.exception.CustomException;
+import com.example.backend_rw.exception.NotFoundException;
 import com.example.backend_rw.repository.VideoRepository;
 import com.example.backend_rw.service.VideoService;
 import com.example.backend_rw.utils.UploadFile;
@@ -41,6 +42,22 @@ public class VideoServiceImpl implements VideoService {
         video.setDescription(videoDto.getDescription());
 
         return videoRepository.save(video);
+    }
+
+    @Override
+    public Video update(VideoDTO videoDto, MultipartFile videoFile) {
+        Video videoDB = videoRepository.findById(videoDto.getId()).orElseThrow(() -> new NotFoundException("Video ID không tồn tại"));
+        if (videoFile != null) {
+            uploadFile.deleteVideoInCloudinary(videoDB.getUrl());
+            String url = uploadFile.uploadFileOnCloudinary(videoFile);
+            videoDB.setUrl(url);
+
+            LocalTime duration = getDurationVideo(url);
+            videoDB.setDuration(duration);
+
+        }
+        videoDB.setDescription(videoDto.getDescription());
+        return videoRepository.save(videoDB);
     }
 
     private LocalTime getDurationVideo(String url) {

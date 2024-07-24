@@ -3,14 +3,13 @@ package com.example.backend_rw.service.impl;
 import com.example.backend_rw.entity.*;
 import com.example.backend_rw.entity.dto.lesson.LessonRequest;
 import com.example.backend_rw.entity.dto.lesson.LessonResponse;
+import com.example.backend_rw.entity.dto.quiz.AnswerDto;
 import com.example.backend_rw.entity.dto.quiz.QuizRequest;
 import com.example.backend_rw.exception.CustomException;
 import com.example.backend_rw.exception.NotFoundException;
-import com.example.backend_rw.repository.ChapterRepository;
-import com.example.backend_rw.repository.LessonRepository;
-import com.example.backend_rw.repository.OrderRepository;
-import com.example.backend_rw.repository.TrackCourseRepository;
+import com.example.backend_rw.repository.*;
 import com.example.backend_rw.service.LessonService;
+import com.example.backend_rw.utils.UploadFile;
 import com.example.backend_rw.utils.Utils;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -18,23 +17,31 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Transactional
 @Service
 public class LessonServiceImpl implements LessonService {
     private final ModelMapper modelMapper;
+    private final UploadFile uploadFile;
     private final LessonRepository lessonRepository;
     private final ChapterRepository chapterRepository;
     private final OrderRepository orderRepository;
     private final TrackCourseRepository trackCourseRepository;
 
-    public LessonServiceImpl(ModelMapper modelMapper, LessonRepository lessonRepository, ChapterRepository chapterRepository, OrderRepository orderRepository, TrackCourseRepository trackCourseRepository) {
+    private final QuizRepository quizRepository;
+
+
+    public LessonServiceImpl(ModelMapper modelMapper, UploadFile uploadFile, LessonRepository lessonRepository, ChapterRepository chapterRepository, OrderRepository orderRepository, TrackCourseRepository trackCourseRepository, QuizRepository quizRepository) {
         this.modelMapper = modelMapper;
+        this.uploadFile = uploadFile;
         this.lessonRepository = lessonRepository;
         this.chapterRepository = chapterRepository;
         this.orderRepository = orderRepository;
         this.trackCourseRepository = trackCourseRepository;
+        this.quizRepository = quizRepository;
     }
 
     @Override
@@ -102,6 +109,94 @@ public class LessonServiceImpl implements LessonService {
             }
         }
         return convertToLessonResponse(savedLesson);
+    }
+
+    @Override
+    public LessonResponse get(Integer lessonId) {
+        Lesson lesson = lessonRepository.findById(lessonId).orElseThrow(() -> new NotFoundException("Lesson ID không tồn tại"));
+
+        return convertToLessonResponse(lesson);
+    }
+
+    @Override
+    public LessonResponse update(Integer lessonId, LessonRequest lessonRequest, Video video, TextLesson textLesson, QuizRequest[] quizRequest) {
+        Chapter chapter = chapterRepository.findById(lessonRequest.getChapterId()).orElseThrow(() -> new NotFoundException("Chapter ID không tồn tại"));
+
+        Lesson lessonInDB = lessonRepository.findById(lessonId).orElseThrow(() -> new NotFoundException("Lesson ID không tồn tại"));
+
+        Lesson lessonTemp = lessonRepository.findLessonByNameAndChapter(lessonRequest.getName(), chapter);
+        if (lessonTemp != null) {
+            if (!Objects.equals(lessonInDB.getId(), lessonTemp.getId())) {
+                throw new CustomException("Tên bài học đã từng tồn tại trong chương này!", HttpStatus.CONFLICT);
+            }
+        }
+
+        lessonInDB.setName(lessonRequest.getName());
+
+        if (video != null && video.getId() != null) {
+            lessonInDB.setVideo(video);
+        }
+
+        if (textLesson != null && textLesson.getId() != null) {
+            lessonInDB.setText(textLesson);
+        }
+
+        if (lessonRequest.getLessonType().equals("QUIZ") && quizRequest != null) {
+            List<Quiz> listQuizzes = new ArrayList<>();
+            for (QuizRequest quizInList : quizRequest) {
+                Quiz quiz = quizInList.getId() == null ? Utils.convertToQuizEntity(quizInList) : updateQuiz(quizInList, lessonInDB);
+                quiz.setLesson(lessonInDB);
+                listQuizzes.add(quiz);
+            }
+
+            lessonInDB.setQuizList(listQuizzes);
+        }
+
+        return convertToLessonResponse(lessonRepository.save(lessonInDB));
+    }
+
+    @Override
+    public String delete(Integer lessonId) {
+        Lesson lessonInDB = lessonRepository.findById(lessonId).orElseThrow(() -> new NotFoundException("Lesson ID không tồn tại"));
+
+        if (lessonInDB.getVideo() != null) {
+            String url = lessonInDB.getVideo().getUrl();
+            uploadFile.deleteVideoInCloudinary(url);
+        }
+
+        lessonRepository.delete(lessonInDB);
+        return "Xóa bài học thành công";
+    }
+
+    private Quiz updateQuiz(QuizRequest quizRequest, Lesson lesson) {
+        Quiz quizInDB = quizRepository.findById(quizRequest.getId()).orElseThrow(() -> new NotFoundException("Quiz ID không tồn tại"));
+
+        Quiz checkQuizDuplicate = quizRepository.findQuizByQuestionAndLesson(quizRequest.getQuestion(), lesson);
+
+        if (checkQuizDuplicate != null) {
+            if (!Objects.equals(quizInDB.getId(), checkQuizDuplicate.getId())) {
+                throw new CustomException("Câu hỏi đã từng tồn tại trong bài học này!", HttpStatus.CONFLICT);
+            }
+        }
+
+        quizInDB.setQuestion(quizRequest.getQuestion());
+        quizInDB.setQuizType(QuizType.valueOf(quizRequest.getQuizType()));
+        List<Answer> answerList = new ArrayList<>();
+
+        for (AnswerDto dto : quizRequest.getAnswerList()) {
+            Answer answer = null;
+            if (dto.getId() != null) {
+                answer = new Answer(dto.getId(), dto.getContent(), dto.isCorrect(), quizInDB);
+            } else {
+                answer = new Answer(dto.getContent(), dto.isCorrect(), quizInDB);
+            }
+
+            answerList.add(answer);
+        }
+
+        quizInDB.setAnswerList(answerList);
+
+        return quizInDB;
     }
 
     private LessonResponse convertToLessonResponse(Lesson lesson) {

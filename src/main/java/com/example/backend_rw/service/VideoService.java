@@ -6,4 +6,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface VideoService {
     Video save(VideoDTO videoDto, MultipartFile videoFile);
+
+    Video update(VideoDTO videoDto, MultipartFile videoFile);
 }

@@ -11,4 +11,10 @@ public interface LessonService {
     Courses getCourse(Integer lessonId);
 
     LessonResponse create(LessonRequest lessonRequest, Video video, TextLesson textLesson, QuizRequest[] quizRequest);
+
+    LessonResponse get(Integer lessonId);
+
+    LessonResponse update(Integer lessonId, LessonRequest lessonRequest, Video video, TextLesson textLesson, QuizRequest[] quizRequest);
+
+    String delete(Integer lessonId);
 }

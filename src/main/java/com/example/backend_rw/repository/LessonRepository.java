@@ -8,4 +8,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface LessonRepository extends JpaRepository<Lesson, Integer> {
     boolean existsLessonByNameAndChapter(String name, Chapter chapter);
+
+    Lesson findLessonByNameAndChapter(String name, Chapter chapter);
+
 }

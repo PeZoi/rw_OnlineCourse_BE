@@ -5,4 +5,6 @@ import com.example.backend_rw.entity.dto.TextLessonDTO;
 
 public interface TextLessonService {
     TextLesson create(TextLessonDTO textLessonDto);
+
+    TextLesson update(TextLessonDTO textLessonDto);
 }
