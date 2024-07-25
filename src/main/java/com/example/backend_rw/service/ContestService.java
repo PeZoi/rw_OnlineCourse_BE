@@ -20,4 +20,6 @@ public interface ContestService {
     String delete(Integer contestId);
 
     ContestResponse get(Integer contestId);
+
+    String switchEnabled(Integer contestId, boolean enabled);
 }

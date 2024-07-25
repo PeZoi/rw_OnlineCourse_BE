@@ -75,4 +75,10 @@ public class ContestController {
     public ResponseEntity<String> delete(@PathVariable(value = "id") Integer contestId) {
         return ResponseEntity.ok(contestService.delete(contestId));
     }
+
+    @PostMapping("/switch-enabled")
+    public ResponseEntity<?> switchEnabledOfContest(@RequestParam(value = "id") Integer contestId,
+                                                    @RequestParam(value = "enabled") boolean enabled){
+        return ResponseEntity.ok(contestService.switchEnabled(contestId, enabled));
+    }
 }

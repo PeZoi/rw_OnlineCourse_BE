@@ -144,6 +144,15 @@ public class ContestServiceImpl implements ContestService {
         return modelMapper.map(contestInDB, ContestResponse.class);
     }
 
+    @Override
+    public String switchEnabled(Integer contestId, boolean enabled) {
+        Contest contestInDB = contestRepository.findById(contestId)
+                .orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
+
+        contestRepository.switchEnabled(contestInDB.getId(), enabled);
+        return "Đổi trạng thái bài thi thành công";
+    }
+
     private List<QuizReturnLearningPage> convertToQuizResponse(List<Quiz> quizzes) {
         List<QuizReturnLearningPage> listQuizzes = new ArrayList<>();
         int i = 0;
