@@ -30,7 +30,7 @@ public class ContestRequest {
 
     private boolean enabled;
 
-    @NotNull(message = "List quiz can not be null")
+    @NotEmpty(message = "Câu hỏi không được để trống")
     @Valid
     @JsonProperty("quiz_list")
     private List<QuizRequest> quizList = new ArrayList<>();
