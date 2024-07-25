@@ -18,19 +18,19 @@ public class GlobalException {
     //    Khi không tìm thấy user
     @ExceptionHandler(value = {UsernameNotFoundException.class, BadCredentialsException.class})
     public ResponseEntity<ResponseDetail<Object>> handleGlobalException(Exception exception) {
-        ResponseDetail<Object> detailResponse = ResponseDetail.builder().status(HttpStatus.BAD_REQUEST.value()).error(exception.getMessage()).message("Error!").build();
+        ResponseDetail<Object> detailResponse = ResponseDetail.builder().status(HttpStatus.BAD_REQUEST.value()).error("Error!").message(exception.getMessage()).build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(detailResponse);
     }
 
     @ExceptionHandler(value = CustomException.class)
     public ResponseEntity<ResponseDetail<Object>> handleCustomException(CustomException customException) {
-        ResponseDetail<Object> detailResponse = ResponseDetail.builder().status(customException.getHttpStatus().value()).error(customException.getMessage()).message("Custom Exception").build();
+        ResponseDetail<Object> detailResponse = ResponseDetail.builder().status(customException.getHttpStatus().value()).error("Custom Exception").message(customException.getMessage()).build();
         return ResponseEntity.status(customException.getHttpStatus()).body(detailResponse);
     }
 
     @ExceptionHandler(value = NotFoundException.class)
     public ResponseEntity<ResponseDetail<Object>> handleNotFoundException(NotFoundException notFoundException) {
-        ResponseDetail<Object> detailResponse = ResponseDetail.builder().status(HttpStatus.NOT_FOUND.value()).error(notFoundException.getMessage()).message("Not Found Exception").build();
+        ResponseDetail<Object> detailResponse = ResponseDetail.builder().status(HttpStatus.NOT_FOUND.value()).error("Not Found Exception").message(notFoundException.getMessage()).build();
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(detailResponse);
     }
 
