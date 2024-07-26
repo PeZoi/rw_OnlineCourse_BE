@@ -10,4 +10,6 @@ public interface OrderService {
     List<OrderResponse> getAllByUser(Integer userId);
 
     void createOrder(User user, Courses courses, int totalPrice);
+
+    List<OrderResponse> getAll();
 }

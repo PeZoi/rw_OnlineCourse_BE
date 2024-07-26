@@ -79,6 +79,12 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    @Override
+    public List<OrderResponse> getAll() {
+        List<Order> listOrders = orderRepository.findAll();
+        return listOrders.stream().map(this::convertToOrderResponse).toList();
+    }
+
     private OrderResponse convertToOrderResponse(Order order) {
         OrderResponse orderResponse = modelMapper.map(order, OrderResponse.class);
         orderResponse.setCourseName(order.getCourses().getTitle());

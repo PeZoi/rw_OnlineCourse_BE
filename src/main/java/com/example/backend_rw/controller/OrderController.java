@@ -27,4 +27,13 @@ public class OrderController {
         }
         return ResponseEntity.ok(listOrder);
     }
+
+    @GetMapping("/list-all")
+    public ResponseEntity<?> listAll(){
+        List<OrderResponse> listOrder = orderService.getAll();
+        if (listOrder.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(listOrder);
+    }
 }
