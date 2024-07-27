@@ -99,6 +99,12 @@ public class ReviewServiceImpl implements ReviewService {
         return "Xóa đánh giá thành công!";
     }
 
+    @Override
+    public ListReviewResponse listAll() {
+        List<Review> listReviews = reviewRepository.findAll();
+        return convertToListReviewResponse(listReviews);
+    }
+
     // Convert danh sách review thành DTO
     private ListReviewResponse convertToListReviewResponse(List<Review> listReviews) {
         ListReviewResponse listReviewResponse = new ListReviewResponse();
