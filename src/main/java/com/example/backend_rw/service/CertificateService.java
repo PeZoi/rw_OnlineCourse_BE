@@ -5,4 +5,5 @@ import com.example.backend_rw.entity.dto.CertificateResponse;
 
 public interface CertificateService {
     CertificateResponse save(String email, Courses courses);
+    CertificateResponse getById(Integer certificateId);
 }

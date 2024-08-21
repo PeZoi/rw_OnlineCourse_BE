@@ -5,6 +5,7 @@ import com.example.backend_rw.entity.Courses;
 import com.example.backend_rw.entity.User;
 import com.example.backend_rw.entity.dto.CertificateResponse;
 import com.example.backend_rw.exception.CustomException;
+import com.example.backend_rw.exception.NotFoundException;
 import com.example.backend_rw.repository.CertificateRepository;
 import com.example.backend_rw.repository.UserRepository;
 import com.example.backend_rw.service.CertificateService;
@@ -46,6 +47,17 @@ public class CertificateServiceImpl implements CertificateService {
         CertificateResponse response = modelMapper.map(savedCertificate, CertificateResponse.class);
         response.setStudentName(savedCertificate.getUser().getFullName());
         response.setTitleCourse(savedCertificate.getCourses().getTitle());
+        return response;
+    }
+
+    @Override
+    public CertificateResponse getById(Integer certificateId) {
+        Certificate certificate = certificateRepository.findById(certificateId)
+                .orElseThrow(() -> new NotFoundException("Certificate ID không tồn tại"));
+
+        CertificateResponse response = modelMapper.map(certificate, CertificateResponse.class);
+        response.setStudentName(certificate.getUser().getFullName());
+        response.setTitleCourse(certificate.getCourses().getTitle());
         return response;
     }
 }

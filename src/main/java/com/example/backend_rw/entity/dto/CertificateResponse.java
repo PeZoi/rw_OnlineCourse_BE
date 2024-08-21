@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.Date;
 
 @Setter
@@ -17,7 +18,7 @@ public class CertificateResponse {
     private Integer id;
 
     @JsonProperty("achieved_time")
-    private Date achievedTime;
+    private Instant achievedTime;
 
     @JsonProperty("title_course")
     private String titleCourse;

@@ -3,7 +3,6 @@ package com.example.backend_rw.controller;
 import com.example.backend_rw.entity.dto.lesson.LessonRequestInQuiz;
 import com.example.backend_rw.service.QuizService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,8 +10,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/quiz")
 public class QuizController {
 
-    @Autowired
-    private QuizService quizService;
+    private final QuizService quizService;
+
+    public QuizController(QuizService quizService) {
+        this.quizService = quizService;
+    }
 
     @PostMapping("/check-answer")
     public ResponseEntity<?> checkAnswerIsCorrect(@RequestBody @Valid LessonRequestInQuiz lessonRequestInQuiz){
