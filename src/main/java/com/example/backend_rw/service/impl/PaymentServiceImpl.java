@@ -11,7 +11,7 @@ import com.example.backend_rw.repository.CoursesRepository;
 import com.example.backend_rw.repository.UserRepository;
 import com.example.backend_rw.service.OrderService;
 import com.example.backend_rw.service.PaymentService;
-import com.example.backend_rw.utils.Payment;
+import com.example.backend_rw.entity.Payment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;

@@ -12,6 +12,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -31,8 +32,14 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
         ResponseDetail<Object> res = new ResponseDetail<Object>();
         res.setStatus(HttpStatus.UNAUTHORIZED.value());
-        res.setError(authException.getCause().getMessage());
-        res.setMessage("Token không hợp lệ (hết hạn, không đúng định dạng, hoặc không truyền JWT ở header)...");
+
+        String errorMessage = Optional.ofNullable(authException.getCause()).map(Throwable::getMessage).orElse(authException.getMessage());
+        res.setError(errorMessage);
+        if (errorMessage.equals("User is disabled")) {
+            res.setMessage("Tài khoản đã bị khoá hoặc chưa kích hoạt");
+        } else {
+            res.setMessage("Token không hợp lệ (hết hạn, không đúng định dạng, hoặc không truyền JWT ở header)...");
+        }
 
         mapper.writeValue(response.getWriter(), res);
     }

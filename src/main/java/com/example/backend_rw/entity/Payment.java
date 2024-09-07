@@ -1,4 +1,4 @@
-package com.example.backend_rw.utils;
+package com.example.backend_rw.entity;
 
 import com.example.backend_rw.entity.dto.payment.BankRequest;
 import com.example.backend_rw.entity.dto.payment.BankResponse;

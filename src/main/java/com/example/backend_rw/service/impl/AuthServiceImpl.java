@@ -117,6 +117,7 @@ public class AuthServiceImpl implements AuthService {
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         // Tạo token
         String accessToken = jwtService.createToken(authentication);
+        // Lưu người dùng vừa đăng nhập vào context
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // Lấy ra thông tin cơ bản của user
