@@ -2,6 +2,7 @@ package com.example.backend_rw.controller;
 
 import com.example.backend_rw.entity.dto.CategoryDTO;
 import com.example.backend_rw.service.CategoryService;
+import com.example.backend_rw.utils.annotation.ApiMessage;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ public class CategoryController {
     }
 
     @GetMapping("/list-all")
+    @ApiMessage("List all categories")
     public ResponseEntity<List<CategoryDTO>> listAllCategories(@RequestParam(value = "keyword", required = false, defaultValue = "") String keyword) {
         List<CategoryDTO> categoryDTOS = categoryService.getAll(keyword);
         if (categoryDTOS.size() == 0) {
@@ -28,11 +30,13 @@ public class CategoryController {
     }
 
     @GetMapping("/get/{id}")
+    @ApiMessage("Get the category by id")
     public ResponseEntity<CategoryDTO> get(@PathVariable(value = "id") Integer categoryId) {
         return ResponseEntity.ok(categoryService.get(categoryId));
     }
 
     @PostMapping("/create")
+    @ApiMessage("Create a category")
     public ResponseEntity<CategoryDTO> add(@RequestBody @Valid CategoryDTO categoryRequest) {
         CategoryDTO savedCategory = categoryService.create(categoryRequest);
         URI uri = URI.create("/api/categories/" + savedCategory.getId());
@@ -41,11 +45,13 @@ public class CategoryController {
     }
 
     @PutMapping("/update/{id}")
+    @ApiMessage("Update the category")
     public ResponseEntity<CategoryDTO> updatedCategory(@PathVariable(value = "id") Integer categoryId, @RequestBody @Valid CategoryDTO categoryRequest) {
         return ResponseEntity.ok(categoryService.update(categoryId, categoryRequest));
     }
 
     @DeleteMapping("/delete/{id}")
+    @ApiMessage("Delete the category")
     public ResponseEntity<String> deleteCategory(@PathVariable(value = "id") Integer categoryId) {
         return ResponseEntity.ok(categoryService.delete(categoryId));
     }

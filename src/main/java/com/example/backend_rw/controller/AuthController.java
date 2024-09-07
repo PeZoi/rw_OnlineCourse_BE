@@ -6,6 +6,7 @@ import com.example.backend_rw.entity.dto.auth.LoginDTO;
 import com.example.backend_rw.entity.dto.user.UserRequest;
 import com.example.backend_rw.entity.dto.user.UserResponse;
 import com.example.backend_rw.service.AuthService;
+import com.example.backend_rw.utils.annotation.ApiMessage;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,11 +24,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @ApiMessage("Login successful")
     public ResponseEntity<JWTAuthResponse> login(@RequestBody @Valid LoginDTO loginDto) {
         return ResponseEntity.ok().body(authService.login(loginDto));
     }
 
     @PostMapping("/register")
+    @ApiMessage("Register successful")
     public ResponseEntity<UserResponse> registration(@RequestPart(value = "user") @Valid UserRequest userRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(userRequest));
     }

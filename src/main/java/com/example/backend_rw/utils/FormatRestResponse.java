@@ -1,6 +1,7 @@
 package com.example.backend_rw.utils;
 
 import com.example.backend_rw.entity.dto.ResponseDetail;
+import com.example.backend_rw.utils.annotation.ApiMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.MethodParameter;
@@ -37,7 +38,10 @@ public class FormatRestResponse implements ResponseBodyAdvice<Object> {
             return body;
         } else {
             // Trường hợp thành công
-            detailResponse.setMessage("Successfully!");
+            ApiMessage message =
+                    returnType.getMethodAnnotation(ApiMessage.class);
+            detailResponse.setMessage(message != null ? message.value() :
+                    "Call api success");
             detailResponse.setData(body);
         }
 

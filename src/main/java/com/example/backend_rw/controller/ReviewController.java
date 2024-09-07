@@ -3,6 +3,7 @@ package com.example.backend_rw.controller;
 import com.example.backend_rw.entity.dto.review.ListReviewResponse;
 import com.example.backend_rw.entity.dto.review.ReviewRequest;
 import com.example.backend_rw.service.ReviewService;
+import com.example.backend_rw.utils.annotation.ApiMessage;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,16 +18,19 @@ public class ReviewController {
     }
 
     @PostMapping("/create")
+    @ApiMessage("Create a review")
     public ResponseEntity<?> create(@RequestBody @Valid ReviewRequest reviewRequest){
         return ResponseEntity.ok(reviewService.createReview(reviewRequest));
     }
 
     @DeleteMapping("/delete/{id}")
+    @ApiMessage("Delete the review")
     public ResponseEntity<?> delete(@PathVariable(value = "id") Integer reviewId){
         return ResponseEntity.ok(reviewService.deleteReview(reviewId));
     }
 
     @GetMapping("/get-all/course/{id}")
+    @ApiMessage("Get all reviews by course id")
     public ResponseEntity<?> listByCourse(@PathVariable(value = "id") Integer courseId){
         ListReviewResponse listReviewResponse = reviewService.listAllByCourse(courseId);
         if(listReviewResponse.getListResponses().isEmpty()){
@@ -36,6 +40,7 @@ public class ReviewController {
     }
 
     @GetMapping("/get-all")
+    @ApiMessage("List all reviews")
     public ResponseEntity<?> list(){
         ListReviewResponse listReviewResponse = reviewService.listAll();
         if(listReviewResponse.getListResponses().isEmpty()){

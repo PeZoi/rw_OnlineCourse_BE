@@ -5,6 +5,7 @@ import com.example.backend_rw.entity.dto.course.CourseReturnHomePageResponse;
 import com.example.backend_rw.entity.dto.course.CourseReturnSearch;
 import com.example.backend_rw.entity.dto.course.CoursesRequest;
 import com.example.backend_rw.service.CourseService;
+import com.example.backend_rw.utils.annotation.ApiMessage;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ public class CourseController {
     }
 
     @GetMapping("/list-all")
+    @ApiMessage("List all courses")
     public ResponseEntity<List<CourseResponse>> listAllCourses(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "categoryId", required = false) Integer categoryId) {
         List<CourseResponse> courseResponses = courseService.getAll();
         if (courseResponses.isEmpty()) {
@@ -41,11 +43,13 @@ public class CourseController {
     }
 
     @GetMapping("/get-detail/{slug}")
+    @ApiMessage("Get the course by slug")
     public ResponseEntity<?> getCourseDetailById(@PathVariable(value = "slug") String slug) {
         return ResponseEntity.ok(courseService.getCourseDetail(slug));
     }
 
     @GetMapping("/search")
+    @ApiMessage("Search course")
     public ResponseEntity<?> search(@RequestParam(value = "keyword") String keyword) {
         List<CourseReturnSearch> listCourses = courseService.listAllCourseByKeyword(keyword);
         if (listCourses.isEmpty()) {
@@ -70,6 +74,7 @@ public class CourseController {
     }
 
     @PostMapping("/create")
+    @ApiMessage("Create a course")
     public ResponseEntity<?> createCourse(@RequestPart(value = "course") @Valid CoursesRequest coursesRequest, @RequestParam(value = "img") MultipartFile img) {
         CourseResponse courseResponse = courseService.create(coursesRequest, img);
         URI uri = URI.create("/api/courses/create/" + courseResponse.getId());
@@ -78,11 +83,13 @@ public class CourseController {
     }
 
     @GetMapping("/get/{id}")
+    @ApiMessage("Get the course by id")
     public ResponseEntity<CourseResponse> getCourseById(@PathVariable(value = "id") Integer courseId) {
         return ResponseEntity.ok(courseService.get(courseId));
     }
 
     @PutMapping("/update/{id}")
+    @ApiMessage("Update the course")
     public ResponseEntity<CourseResponse> updateCourse(@PathVariable(value = "id") Integer courseId, @RequestPart(value = "course") @Valid CoursesRequest coursesRequest, @RequestParam(value = "img", required = false) MultipartFile img) {
         return ResponseEntity.ok(courseService.update(courseId, coursesRequest, img));
     }

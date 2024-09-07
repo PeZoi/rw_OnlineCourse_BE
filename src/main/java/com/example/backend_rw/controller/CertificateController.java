@@ -1,6 +1,7 @@
 package com.example.backend_rw.controller;
 
 import com.example.backend_rw.service.CertificateService;
+import com.example.backend_rw.utils.annotation.ApiMessage;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ public class CertificateController {
     }
 
     @GetMapping("/get/{id}")
+    @ApiMessage("Get the certificate by id")
     public ResponseEntity<?> get(@PathVariable(value = "id") Integer certificateId){
         return ResponseEntity.ok(certificateService.getById(certificateId));
     }

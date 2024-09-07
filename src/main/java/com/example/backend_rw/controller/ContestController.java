@@ -5,6 +5,7 @@ import com.example.backend_rw.entity.dto.contest.ContestResponse;
 import com.example.backend_rw.entity.dto.record.RecordReturnInRank;
 import com.example.backend_rw.service.ContestService;
 import com.example.backend_rw.service.RecordService;
+import com.example.backend_rw.utils.annotation.ApiMessage;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ public class ContestController {
 
     //api này dùng cho admin vs học viên.
     @GetMapping("/list-all")
+    @ApiMessage("List all contests")
     public ResponseEntity<?> listAll() {
         List<ContestResponse> listContest = contestService.listAll();
         if (listContest.isEmpty()) {
@@ -34,6 +36,7 @@ public class ContestController {
     }
 
     @GetMapping("/ranking/contest/{id}")
+    @ApiMessage("List rank of contest")
     public ResponseEntity<?> rank(@PathVariable(value = "id") Integer contestId) {
         List<RecordReturnInRank> listRanks = recordService.ranking(contestId);
         if (listRanks.isEmpty()) {
@@ -48,6 +51,7 @@ public class ContestController {
     }
 
     @GetMapping("/search")
+    @ApiMessage("Search contest")
     public ResponseEntity<?> search(@RequestParam(value = "keyword") String keyword) {
         List<ContestResponse> listContest = contestService.search(keyword);
         if (listContest.isEmpty()) {
@@ -57,21 +61,25 @@ public class ContestController {
     }
 
     @PostMapping("/create")
+    @ApiMessage("Create a contest")
     public ResponseEntity<ContestResponse> save(@RequestBody @Valid ContestRequest contestRequest) {
         return new ResponseEntity<>(contestService.save(contestRequest), HttpStatus.CREATED);
     }
 
     @PutMapping("/update/{id}")
+    @ApiMessage("Update the contest")
     public ResponseEntity<ContestResponse> update(@PathVariable(value = "id") Integer contestId, @RequestBody @Valid ContestRequest contestRequest) {
         return ResponseEntity.ok(contestService.update(contestId, contestRequest));
     }
 
     @GetMapping("/get/{id}")
+    @ApiMessage("Get the contest by id")
     public ResponseEntity<?> getInAdministration(@PathVariable(value = "id") Integer contestId){
         return ResponseEntity.ok(contestService.get(contestId));
     }
 
     @DeleteMapping("/delete/{id}")
+    @ApiMessage("Delete the contest")
     public ResponseEntity<String> delete(@PathVariable(value = "id") Integer contestId) {
         return ResponseEntity.ok(contestService.delete(contestId));
     }
