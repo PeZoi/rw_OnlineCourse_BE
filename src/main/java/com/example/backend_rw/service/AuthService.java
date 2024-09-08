@@ -22,4 +22,6 @@ public interface AuthService {
     void updatePassword(String token, String password);
 
     Map<String, String> checkInfoOfCustomer(CheckValidateCustomerRequest request);
+
+    JWTAuthResponse refreshToken(String refreshToken);
 }

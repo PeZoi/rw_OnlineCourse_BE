@@ -19,13 +19,8 @@ import javax.crypto.spec.SecretKeySpec;
 @Configuration
 public class JwtConfiguration {
 
-    @Value("${online.course.jwt-secret}")
-    private String jwtKey;
-
-    private SecretKey getSecretKey() {
-        byte[] keyBytes = Base64.from(jwtKey).decode();
-        return new SecretKeySpec(keyBytes, 0, keyBytes.length, JwtService.JWT_ALGORITHM.getName());
-    }
+    @Value("${online.course.key-secret}")
+    private String jwtKeySecret;
 
     @Bean
     public JwtEncoder jwtEncoder() {
@@ -49,9 +44,16 @@ public class JwtConfiguration {
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         grantedAuthoritiesConverter.setAuthorityPrefix("");
-        grantedAuthoritiesConverter.setAuthoritiesClaimName("role");
+        grantedAuthoritiesConverter.setAuthoritiesClaimName("permission");
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         return jwtAuthenticationConverter;
+    }
+
+
+    @Bean
+    public SecretKey getSecretKey() {
+        byte[] keyBytes = Base64.from(jwtKeySecret).decode();
+        return new SecretKeySpec(keyBytes, 0, keyBytes.length, JwtService.JWT_ALGORITHM.getName());
     }
 }

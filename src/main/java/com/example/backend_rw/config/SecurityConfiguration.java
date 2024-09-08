@@ -35,14 +35,7 @@ public class SecurityConfiguration {
                 return corsConfig;
             });
         });
-        httpSecurity.csrf().disable().authorizeHttpRequests(
-                        (authorize) -> authorize
-                                .requestMatchers("/api/auth/**").permitAll()
-                                .anyRequest().authenticated())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
-                        .authenticationEntryPoint(customAuthenticationEntryPoint))
-                .formLogin(AbstractHttpConfigurer::disable)
+        httpSecurity.csrf().disable().authorizeHttpRequests((authorize) -> authorize.requestMatchers("/api/auth/**").permitAll().anyRequest().hasAuthority("ROLE_ADMIN")).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults()).authenticationEntryPoint(customAuthenticationEntryPoint)).formLogin(AbstractHttpConfigurer::disable)
 //                .exceptionHandling(exceptions -> exceptions
 //                        .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) //401
 //                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) //403

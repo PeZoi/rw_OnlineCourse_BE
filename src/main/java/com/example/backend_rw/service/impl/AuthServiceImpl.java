@@ -9,10 +9,12 @@ import com.example.backend_rw.entity.dto.user.UserRequest;
 import com.example.backend_rw.entity.dto.user.UserResponse;
 import com.example.backend_rw.entity.dto.user.UserReturnJwt;
 import com.example.backend_rw.exception.CustomException;
+import com.example.backend_rw.exception.NotFoundException;
 import com.example.backend_rw.repository.RoleRepository;
 import com.example.backend_rw.repository.UserRepository;
 import com.example.backend_rw.security.JwtService;
 import com.example.backend_rw.service.AuthService;
+import com.example.backend_rw.service.UserService;
 import com.example.backend_rw.utils.Constant;
 import com.example.backend_rw.utils.EmailUtil;
 import org.modelmapper.ModelMapper;
@@ -25,6 +27,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,11 +45,12 @@ public class AuthServiceImpl implements AuthService {
     private final EmailUtil emailUtil;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtService jwtService;
+    private final UserService userService;
 
     @Value("${online.course.domain.frontend}")
     private String domainFE;
 
-    public AuthServiceImpl(ModelMapper modelMapper, RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, EmailUtil emailUtil, AuthenticationManagerBuilder authenticationManagerBuilder, JwtService jwtService) {
+    public AuthServiceImpl(ModelMapper modelMapper, RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, EmailUtil emailUtil, AuthenticationManagerBuilder authenticationManagerBuilder, JwtService jwtService, UserService userService) {
         this.modelMapper = modelMapper;
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
@@ -54,6 +58,7 @@ public class AuthServiceImpl implements AuthService {
         this.emailUtil = emailUtil;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.jwtService = jwtService;
+        this.userService = userService;
     }
 
 
@@ -115,8 +120,7 @@ public class AuthServiceImpl implements AuthService {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword());
         // Xác thực người dùng => cần viết hàm loadUserByUsername
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-        // Tạo token
-        String accessToken = jwtService.createToken(authentication);
+
         // Lưu người dùng vừa đăng nhập vào context
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -124,6 +128,13 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(loginDto.getEmail()).get();
         UserReturnJwt userReturnJwt = modelMapper.map(user, UserReturnJwt.class);
         userReturnJwt.setRoleName(user.getRole().getName());
+
+        // Tạo access token
+        String accessToken = jwtService.createAccessToken(authentication.getName(), userReturnJwt);
+        // Tạo refresh token
+        String refreshToken = jwtService.createRefreshToken(userReturnJwt);
+        // Cập nhật refresh token cho user trong db
+        userService.updateRefreshTokenUser(refreshToken, user);
 
         return new JWTAuthResponse(accessToken, userReturnJwt);
     }
@@ -174,5 +185,28 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return errors;
+    }
+
+    @Override
+    public JWTAuthResponse refreshToken(String refreshToken) {
+        Jwt jwt = jwtService.checkValidRefreshToken(refreshToken);
+        // Lấy ra thông tin cơ bản của user
+        User user = userRepository.findUserByRefreshTokenAndEmail(refreshToken, jwt.getSubject());
+
+        if (user == null) {
+            throw new NotFoundException("Refresh token không hợp lệ");
+        }
+
+        UserReturnJwt userReturnJwt = modelMapper.map(user, UserReturnJwt.class);
+        userReturnJwt.setRoleName(user.getRole().getName());
+
+        // Tạo access token
+        String accessToken = jwtService.createAccessToken(user.getEmail(), userReturnJwt);
+        // Tạo refresh token
+        String newRefreshToken = jwtService.createRefreshToken(userReturnJwt);
+        // Cập nhật refresh token cho user trong db
+        userService.updateRefreshTokenUser(newRefreshToken, user);
+
+        return new JWTAuthResponse(accessToken, userReturnJwt);
     }
 }

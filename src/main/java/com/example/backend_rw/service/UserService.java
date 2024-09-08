@@ -22,5 +22,7 @@ public interface UserService {
 
     UserResponse updateUser(UserRequest userRequest, Integer userId, MultipartFile img);
 
+    void updateRefreshTokenUser(String refreshToken, User user);
+
     String delete(Integer userId);
 }

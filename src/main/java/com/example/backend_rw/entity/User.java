@@ -2,10 +2,13 @@ package com.example.backend_rw.entity;
 
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -23,7 +26,7 @@ public class User {
     @Column(name = "full_name", length = 45, nullable = false)
     private String fullName;
 
-    @Column(length = 45,unique = true, nullable = false)
+    @Column(length = 45, unique = true, nullable = false)
     private String username;
 
     @Column(nullable = false, unique = true, length = 30)
@@ -48,6 +51,9 @@ public class User {
 
     @Column(name = "reset_password_token", length = 30)
     private String resetPasswordToken;
+
+    @Column(name = "refresh_token", columnDefinition = "MEDIUMTEXT")
+    private String refreshToken;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
