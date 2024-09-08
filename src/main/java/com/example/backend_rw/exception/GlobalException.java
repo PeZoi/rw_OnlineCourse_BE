@@ -9,6 +9,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,5 +55,13 @@ public class GlobalException {
         res.setMessage(errors);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    }
+
+    // Bắt lỗi khi endpoint không hợp lệ
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ResponseDetail<Object>> handleNotResourceFoundException(NoResourceFoundException noResourceFoundException) {
+        ResponseDetail<Object> detailResponse = ResponseDetail.builder().status(HttpStatus.NOT_FOUND.value()).error(
+                noResourceFoundException.getMessage()).message("URL invalid!").build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(detailResponse);
     }
 }
