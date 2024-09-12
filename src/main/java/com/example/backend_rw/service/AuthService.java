@@ -24,4 +24,6 @@ public interface AuthService {
     Map<String, String> checkInfoOfCustomer(CheckValidateCustomerRequest request);
 
     JWTAuthResponse refreshToken(String refreshToken);
+
+    void logout();
 }

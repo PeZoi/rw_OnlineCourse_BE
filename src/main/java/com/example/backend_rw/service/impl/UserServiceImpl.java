@@ -128,8 +128,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateRefreshTokenUser(String refreshToken, User user) {
-        User userInDB = userRepository.findById(user.getId()).orElseThrow(() -> new NotFoundException("User ID không tồn " + "tại"));
+    public void updateRefreshTokenUser(String refreshToken, String email) {
+        User userInDB =
+                userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Email không tồn " + "tại"));
         userInDB.setRefreshToken(refreshToken);
         userRepository.save(userInDB);
     }

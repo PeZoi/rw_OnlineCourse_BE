@@ -12,7 +12,7 @@ import com.example.backend_rw.exception.CustomException;
 import com.example.backend_rw.exception.NotFoundException;
 import com.example.backend_rw.repository.RoleRepository;
 import com.example.backend_rw.repository.UserRepository;
-import com.example.backend_rw.security.JwtService;
+import com.example.backend_rw.security.SecurityUtil;
 import com.example.backend_rw.service.AuthService;
 import com.example.backend_rw.service.UserService;
 import com.example.backend_rw.utils.Constant;
@@ -44,13 +44,13 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailUtil emailUtil;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
-    private final JwtService jwtService;
+    private final SecurityUtil jwtService;
     private final UserService userService;
 
     @Value("${online.course.domain.frontend}")
     private String domainFE;
 
-    public AuthServiceImpl(ModelMapper modelMapper, RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, EmailUtil emailUtil, AuthenticationManagerBuilder authenticationManagerBuilder, JwtService jwtService, UserService userService) {
+    public AuthServiceImpl(ModelMapper modelMapper, RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, EmailUtil emailUtil, AuthenticationManagerBuilder authenticationManagerBuilder, SecurityUtil jwtService, UserService userService) {
         this.modelMapper = modelMapper;
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
@@ -134,7 +134,7 @@ public class AuthServiceImpl implements AuthService {
         // Tạo refresh token
         String refreshToken = jwtService.createRefreshToken(userReturnJwt);
         // Cập nhật refresh token cho user trong db
-        userService.updateRefreshTokenUser(refreshToken, user);
+        userService.updateRefreshTokenUser(refreshToken, user.getEmail());
 
         return new JWTAuthResponse(accessToken, userReturnJwt);
     }
@@ -205,8 +205,18 @@ public class AuthServiceImpl implements AuthService {
         // Tạo refresh token
         String newRefreshToken = jwtService.createRefreshToken(userReturnJwt);
         // Cập nhật refresh token cho user trong db
-        userService.updateRefreshTokenUser(newRefreshToken, user);
+        userService.updateRefreshTokenUser(newRefreshToken, user.getEmail());
 
         return new JWTAuthResponse(accessToken, userReturnJwt);
+    }
+
+    @Override
+    public void logout() {
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
+        if (email.equals("")) {
+            throw new NotFoundException("Access token không hợp lệ");
+        }
+
+        userService.updateRefreshTokenUser(null, email);
     }
 }

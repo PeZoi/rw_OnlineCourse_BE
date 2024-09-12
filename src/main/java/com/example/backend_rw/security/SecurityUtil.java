@@ -2,6 +2,10 @@ package com.example.backend_rw.security;
 
 import com.example.backend_rw.entity.dto.user.UserReturnJwt;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
@@ -9,9 +13,10 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 @Service
-public class JwtService {
+public class SecurityUtil {
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS256;
     private final JwtEncoder jwtEncoder;
     private final SecretKey secretKey;
@@ -20,7 +25,7 @@ public class JwtService {
     @Value("${online.course.refresh-token-expiration}")
     private long jwtRefreshTokenExpiration;
 
-    public JwtService(JwtEncoder jwtEncoder, SecretKey secretKey) {
+    public SecurityUtil(JwtEncoder jwtEncoder, SecretKey secretKey) {
         this.jwtEncoder = jwtEncoder;
         this.secretKey = secretKey;
     }
@@ -66,5 +71,28 @@ public class JwtService {
                 System.out.println(">>> JWT error: " + e.getMessage());
                 throw e;
             }
+    }
+
+    /**
+     * Get the login of the current user.
+     *
+     * @return the login of the current user.
+     */
+    public static Optional<String> getCurrentUserLogin() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        return Optional.ofNullable(extractPrincipal(securityContext.getAuthentication()));
+    }
+
+    private static String extractPrincipal(Authentication authentication) {
+        if (authentication == null) {
+            return null;
+        } else if (authentication.getPrincipal() instanceof UserDetails springSecurityUser) {
+            return springSecurityUser.getUsername();
+        } else if (authentication.getPrincipal() instanceof Jwt jwt) {
+            return jwt.getSubject();
+        } else if (authentication.getPrincipal() instanceof String s) {
+            return s;
+        }
+        return null;
     }
 }

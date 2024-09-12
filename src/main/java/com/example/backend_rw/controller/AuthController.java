@@ -102,4 +102,20 @@ public class AuthController {
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, responseCookie.toString()).body(jwtAuthResponse);
     }
 
+    @GetMapping("/logout")
+    @ApiMessage("Logout")
+    public ResponseEntity<Void> logout() {
+        authService.logout();
+
+        ResponseCookie responseCookie = ResponseCookie
+                .from("refresh_token", null)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, responseCookie.toString()).body(null);
+    }
+
 }
