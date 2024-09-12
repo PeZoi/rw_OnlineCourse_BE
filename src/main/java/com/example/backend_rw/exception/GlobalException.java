@@ -16,6 +16,16 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalException {
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ResponseDetail<Object>> handleAllException(Exception ex) {
+        ResponseDetail<Object> res = new ResponseDetail<>();
+        res.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        res.setMessage(ex.getMessage());
+        res.setError("Internal Server Error");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
+    }
+
     //    Khi không tìm thấy user
     @ExceptionHandler(value = {UsernameNotFoundException.class, BadCredentialsException.class})
     public ResponseEntity<ResponseDetail<Object>> handleGlobalException(Exception exception) {
