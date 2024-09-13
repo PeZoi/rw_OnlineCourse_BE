@@ -1,5 +1,6 @@
 package com.example.backend_rw.entity.dto.user;
 
+import com.example.backend_rw.entity.Status;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,4 +37,6 @@ public class UserResponse {
 
     @JsonProperty("role_name")
     private String roleName;
+
+    private Status status;
 }

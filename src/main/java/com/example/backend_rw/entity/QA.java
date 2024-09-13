@@ -39,4 +39,7 @@ public class QA {
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<QA> children = new HashSet<>();
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
 }

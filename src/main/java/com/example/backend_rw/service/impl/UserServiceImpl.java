@@ -1,6 +1,7 @@
 package com.example.backend_rw.service.impl;
 
 import com.example.backend_rw.entity.Role;
+import com.example.backend_rw.entity.Status;
 import com.example.backend_rw.entity.User;
 import com.example.backend_rw.entity.dto.user.UserRequest;
 import com.example.backend_rw.entity.dto.user.UserResponse;
@@ -44,7 +45,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponse> getAllUsers() {
-        List<User> users = userRepository.findAll();
+        List<User> users = userRepository.findAllUsers();
         return users.stream().map(user -> {
             return modelMapper.map(user, UserResponse.class);
         }).toList();
@@ -56,12 +57,19 @@ public class UserServiceImpl implements UserService {
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("User ID không tồn tại");
         }
+        if (user.get().getStatus().equals(Status.DELETED)) {
+            throw new UsernameNotFoundException("User đã bị xoá");
+        }
         return modelMapper.map(user.get(), UserResponse.class);
     }
 
     @Override
     public UserResponse updateInfo(String fullName, MultipartFile img, String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại"));
+
+        if (user.getStatus().equals(Status.DELETED)) {
+            throw new UsernameNotFoundException("User đã bị xoá");
+        }
 
         // Nếu mà có fullName thì tức là người dùng sửa đổi thì cập nhật
         if (fullName != null) {
@@ -83,6 +91,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public String changePassword(String password, String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại"));
+        if (user.getStatus().equals(Status.DELETED)) {
+            throw new UsernameNotFoundException("User đã bị xoá");
+        }
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
         return "Thay đổi mật khẩu của bạn thành công!";
@@ -103,7 +114,9 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateUser(UserRequest userRequest, Integer userId, MultipartFile img) {
         // Lấy user từ db
         User userInDB = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User ID không tồn tại"));
-
+        if (userInDB.getStatus().equals(Status.DELETED)) {
+            throw new UsernameNotFoundException("User đã bị xoá");
+        }
         // Nếu có ảnh đại diện có thay đổi
         if (img != null) {
             if (userInDB.getPhoto() != null) {
@@ -131,6 +144,9 @@ public class UserServiceImpl implements UserService {
     public void updateRefreshTokenUser(String refreshToken, String email) {
         User userInDB =
                 userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Email không tồn " + "tại"));
+        if (userInDB.getStatus().equals(Status.DELETED)) {
+            throw new UsernameNotFoundException("User đã bị xoá");
+        }
         userInDB.setRefreshToken(refreshToken);
         userRepository.save(userInDB);
     }
@@ -140,10 +156,10 @@ public class UserServiceImpl implements UserService {
         // Lấy user trong db
         User userInDB = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
         // Xoá ảnh trong cloudinary
-        if (userInDB.getPhoto() != null) {
-            uploadFile.deleteImageInCloudinary(userInDB.getPhoto());
-        }
-        userRepository.delete(userInDB);
+//        if (userInDB.getPhoto() != null) {
+//            uploadFile.deleteImageInCloudinary(userInDB.getPhoto());
+//        }
+        userRepository.deleteUser(userInDB.getId());
         return "Xóa user thành công";
     }
 

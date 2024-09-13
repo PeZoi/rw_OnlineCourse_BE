@@ -26,6 +26,9 @@ public class Category {
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Courses> courses;
 
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
     public Category(String name) {
         this.name = name;
     }

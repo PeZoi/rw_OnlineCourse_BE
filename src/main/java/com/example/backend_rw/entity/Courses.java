@@ -78,6 +78,9 @@ public class Courses {
     @OneToMany(mappedBy = "courses", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Certificate> listCertificates = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
     public void addInfoList(String value, InformationType type){
         this.infoList.add(new CourseInfo(value, type, this));
     }
