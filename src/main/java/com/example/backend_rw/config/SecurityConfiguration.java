@@ -29,18 +29,16 @@ public class SecurityConfiguration {
         httpSecurity.cors(cors -> {
             cors.configurationSource(request -> {
                 CorsConfiguration corsConfig = new CorsConfiguration();
-                corsConfig.addAllowedOrigin("*");
+                corsConfig.setAllowCredentials(true);
+                corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:4173", "http" +
+                        "://localhost:5173"));
                 corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
-                corsConfig.addAllowedHeader("*");
+                corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "x-no-retry"));
                 return corsConfig;
             });
         });
-        httpSecurity.csrf().disable().authorizeHttpRequests((authorize) -> authorize.requestMatchers("/api/auth/**").permitAll()
-                .anyRequest().hasAuthority("ROLE_ADMIN"))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
-                        .authenticationEntryPoint(customAuthenticationEntryPoint))
-                .formLogin(AbstractHttpConfigurer::disable)
+        httpSecurity.authorizeHttpRequests((authorize) -> authorize.requestMatchers("/api/auth/**").permitAll().anyRequest().hasAuthority("ROLE_ADMIN")).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults()).authenticationEntryPoint(customAuthenticationEntryPoint)).csrf().disable().formLogin(AbstractHttpConfigurer::disable)
+
 //                .exceptionHandling(exceptions -> exceptions
 //                        .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) //401
 //                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) //403

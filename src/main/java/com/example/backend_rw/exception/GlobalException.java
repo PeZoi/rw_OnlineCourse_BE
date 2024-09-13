@@ -4,6 +4,7 @@ import com.example.backend_rw.entity.dto.ResponseDetail;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,6 +20,12 @@ public class GlobalException {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseDetail<Object>> handleAllException(Exception ex) {
+
+        // Nếu ngoại lệ là một AuthenticationException
+        if (ex instanceof AuthenticationException) {
+            throw (AuthenticationException) ex; // Để nó được xử lý bởi AuthenticationEntryPoint
+        }
+
         ResponseDetail<Object> res = new ResponseDetail<>();
         res.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
         res.setMessage(ex.getMessage());

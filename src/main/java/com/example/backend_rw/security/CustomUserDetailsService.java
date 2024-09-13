@@ -30,6 +30,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         Set<GrantedAuthority> authorities = Set.of(new SimpleGrantedAuthority(user.getRole().getName()));
 
         // Trả về 1 UserDetail mặc định của spring security
-        return new User(user.getEmail(), user.getPassword(), authorities);
+        return new User(user.getEmail(), user.getPassword(), user.isEnabled(), true, true, true, authorities);
     }
 }
