@@ -41,4 +41,14 @@ public class UserRequest {
 
     private boolean enabled;
 
+    private UserRole role;
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public class UserRole {
+        private Integer id;
+    }
+
 }

@@ -101,8 +101,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse createUser(UserRequest userRequest, MultipartFile img) {
-        // Lấy ra role admin
-        Role role = roleRepository.findByName("ROLE_ADMIN");
+        Role role =
+                roleRepository.findById(userRequest.getRole().getId()).orElseThrow(() -> new NotFoundException(
+                        "Role ID không tồn tại"));
 
         User user = checkValid(userRequest, role, img);
         User savedUser = userRepository.save(user);
