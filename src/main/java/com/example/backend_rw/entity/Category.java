@@ -23,7 +23,8 @@ public class Category {
     @Column(length = 50, nullable = false, unique = true)
     private String slug;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "category", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST,
+            CascadeType.REFRESH})
     private List<Courses> courses;
 
     @Enumerated(EnumType.STRING)

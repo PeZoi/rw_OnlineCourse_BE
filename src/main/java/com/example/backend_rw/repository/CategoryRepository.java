@@ -2,6 +2,7 @@ package com.example.backend_rw.repository;
 
 import com.example.backend_rw.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -17,4 +18,8 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
     List<Category> search(String keyword);
 
     Category findByNameOrSlug(String name, String slug);
+
+    @Modifying
+    @Query("update Category c set c.status = 'DELETED' WHERE c.id = ?1")
+    void deleteCategory(Integer id);
 }

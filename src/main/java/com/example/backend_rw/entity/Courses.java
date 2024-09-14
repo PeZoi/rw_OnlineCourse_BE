@@ -66,7 +66,7 @@ public class Courses {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Chapter> chapterList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "courses", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "courses", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     private List<Order> listOrders = new ArrayList<>();
 
     @OneToMany(mappedBy = "courses", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -77,9 +77,6 @@ public class Courses {
 
     @OneToMany(mappedBy = "courses", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Certificate> listCertificates = new ArrayList<>();
-
-    @Enumerated(EnumType.STRING)
-    private Status status;
 
     public void addInfoList(String value, InformationType type){
         this.infoList.add(new CourseInfo(value, type, this));

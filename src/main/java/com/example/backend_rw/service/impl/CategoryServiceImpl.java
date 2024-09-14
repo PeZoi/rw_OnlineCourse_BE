@@ -29,12 +29,13 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryDTO> getAll(String keyword) {
         List<Category> categories = null;
-        if (keyword.trim().equals("")) {
+        if (!keyword.trim().equals("")) {
             categories = categoryRepository.search(keyword);
         } else {
             categories = categoryRepository.findAll();
         }
-        return categories.stream().map(category -> {
+        // Status mà là null nghĩa là nó chưa bị xoá nên render ra giao diện
+        return categories.stream().filter(category -> category.getStatus() == null).map(category -> {
             // Mapper về dạng CategoryEntity -> CategoryDTO
             return modelMapper.map(category, CategoryDTO.class);
         }).toList();
@@ -94,7 +95,7 @@ public class CategoryServiceImpl implements CategoryService {
     public String delete(Integer categoryId) {
         Category categoryInDB = categoryRepository.findById(categoryId).orElseThrow(() -> new NotFoundException("Category ID không tồn tại"));
 
-        categoryRepository.delete(categoryInDB);
+        categoryRepository.deleteCategory(categoryInDB.getId());
         return "Xóa danh mục thành công";
     }
 }

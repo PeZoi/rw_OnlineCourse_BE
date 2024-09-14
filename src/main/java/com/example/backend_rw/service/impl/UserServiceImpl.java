@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService {
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("User ID không tồn tại");
         }
-        if (user.get().getStatus().equals(Status.DELETED)) {
+        if (user.get().getStatus() != null && user.get().getStatus().equals(Status.DELETED)) {
             throw new UsernameNotFoundException("User đã bị xoá");
         }
         return modelMapper.map(user.get(), UserResponse.class);
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateInfo(String fullName, MultipartFile img, String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại"));
 
-        if (user.getStatus().equals(Status.DELETED)) {
+        if (user.getStatus() != null && user.getStatus().equals(Status.DELETED)) {
             throw new UsernameNotFoundException("User đã bị xoá");
         }
 
@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String changePassword(String password, String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại"));
-        if (user.getStatus().equals(Status.DELETED)) {
+        if (user.getStatus() != null && user.getStatus().equals(Status.DELETED)) {
             throw new UsernameNotFoundException("User đã bị xoá");
         }
         user.setPassword(passwordEncoder.encode(password));
@@ -114,7 +114,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateUser(UserRequest userRequest, Integer userId, MultipartFile img) {
         // Lấy user từ db
         User userInDB = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User ID không tồn tại"));
-        if (userInDB.getStatus().equals(Status.DELETED)) {
+        if (userInDB.getStatus() != null && userInDB.getStatus().equals(Status.DELETED)) {
             throw new UsernameNotFoundException("User đã bị xoá");
         }
         // Nếu có ảnh đại diện có thay đổi
@@ -142,9 +142,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateRefreshTokenUser(String refreshToken, String email) {
-        User userInDB =
-                userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Email không tồn " + "tại"));
-        if (userInDB.getStatus().equals(Status.DELETED)) {
+        User userInDB = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Email không tồn " + "tại"));
+        if (userInDB.getStatus() != null && userInDB.getStatus().equals(Status.DELETED)) {
             throw new UsernameNotFoundException("User đã bị xoá");
         }
         userInDB.setRefreshToken(refreshToken);
