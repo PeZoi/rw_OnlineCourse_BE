@@ -47,6 +47,12 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(userRequest, userId, img));
     }
 
+    @PutMapping("/switch-blocked/{id}")
+    @ApiMessage("Change status user (block)")
+    public ResponseEntity<String> switchStatusBlocked(@PathVariable(value = "id") Integer id) {
+        return ResponseEntity.ok(userService.switchStatusBlocked(id));
+    }
+
     @DeleteMapping("/delete/{id}")
     @ApiMessage("Delete user")
     public ResponseEntity<String> delete(@PathVariable(value = "id") Integer userId) {

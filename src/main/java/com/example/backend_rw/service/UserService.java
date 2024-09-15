@@ -25,4 +25,6 @@ public interface UserService {
     void updateRefreshTokenUser(String refreshToken, String email);
 
     String delete(Integer userId);
+
+    String switchStatusBlocked(Integer id);
 }

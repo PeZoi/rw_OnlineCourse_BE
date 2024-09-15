@@ -165,6 +165,20 @@ public class UserServiceImpl implements UserService {
         return "Xóa tài khoản thành công";
     }
 
+    @Override
+    public String switchStatusBlocked(Integer id) {
+        User userInDB = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
+        if (userInDB.getStatus() != null && userInDB.getStatus().equals(Status.BLOCKED)) {
+            userInDB.setStatus(null);
+        } else {
+            userInDB.setStatus(Status.BLOCKED);
+        }
+
+        userRepository.save(userInDB);
+
+        return "Cập nhật trạng thái thành công";
+    }
+
     private UserResponse convertToUserResponse(User user) {
         UserResponse userResponse = modelMapper.map(user, UserResponse.class);
         return userResponse;
