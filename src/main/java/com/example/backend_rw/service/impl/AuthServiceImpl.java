@@ -93,7 +93,6 @@ public class AuthServiceImpl implements AuthService {
         User savedUser = userRepository.save(user);
 
         UserResponse userResponse = modelMapper.map(savedUser, UserResponse.class);
-        userResponse.setRoleName(role.getName());
 
         return userResponse;
     }
@@ -154,7 +153,6 @@ public class AuthServiceImpl implements AuthService {
     public UserResponse findByResetPasswordToken(String token) {
         User user = userRepository.findUserByResetPasswordToken(token);
         UserResponse userResponse = modelMapper.map(user, UserResponse.class);
-        userResponse.setRoleName(user.getRole().getName());
         return userResponse;
     }
 

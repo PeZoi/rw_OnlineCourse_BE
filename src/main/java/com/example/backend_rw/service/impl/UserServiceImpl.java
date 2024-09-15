@@ -83,7 +83,6 @@ public class UserServiceImpl implements UserService {
 
         User savedUser = userRepository.save(user);
         UserResponse userResponse = modelMapper.map(savedUser, UserResponse.class);
-        userResponse.setRoleName(savedUser.getRole().getName());
 
         return userResponse;
     }
@@ -113,6 +112,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse updateUser(UserRequest userRequest, Integer userId, MultipartFile img) {
+        Role role =
+                roleRepository.findById(userRequest.getRole().getId()).orElseThrow(() -> new NotFoundException(
+                        "Role ID không tồn tại"));
         // Lấy user từ db
         User userInDB = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User ID không tồn tại"));
         if (userInDB.getStatus() != null && userInDB.getStatus().equals(Status.DELETED)) {
@@ -132,10 +134,10 @@ public class UserServiceImpl implements UserService {
             userInDB.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         }
 
+        userInDB.setRole(role);
         userInDB.setFullName(userRequest.getFullName());
         userInDB.setEmail(userRequest.getEmail());
         userInDB.setPhoneNumber(userRequest.getPhoneNumber());
-        userInDB.setEnabled(userRequest.isEnabled());
 
         User savedUser = userRepository.save(userInDB);
         return convertToUserResponse(savedUser);
@@ -160,12 +162,11 @@ public class UserServiceImpl implements UserService {
 //            uploadFile.deleteImageInCloudinary(userInDB.getPhoto());
 //        }
         userRepository.deleteUser(userInDB.getId());
-        return "Xóa user thành công";
+        return "Xóa tài khoản thành công";
     }
 
     private UserResponse convertToUserResponse(User user) {
         UserResponse userResponse = modelMapper.map(user, UserResponse.class);
-        userResponse.setRoleName(user.getRole().getName());
         return userResponse;
     }
 
