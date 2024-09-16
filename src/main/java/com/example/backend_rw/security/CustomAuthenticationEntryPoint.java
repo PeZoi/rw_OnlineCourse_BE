@@ -35,10 +35,12 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
         String errorMessage = Optional.ofNullable(authException.getCause()).map(Throwable::getMessage).orElse(authException.getMessage());
         res.setError(errorMessage);
-        if (errorMessage.equals("User is disabled")) {
-            res.setMessage("Tài khoản đã bị khoá hoặc chưa kích hoạt");
-        } else {
-            res.setMessage("Token không hợp lệ (hết hạn, không đúng định dạng, hoặc không truyền JWT ở header)...");
+        switch (errorMessage) {
+            case "User is disabled" -> res.setMessage("Tài khoản đã bị khoá hoặc chưa kích hoạt");
+            case "User account is locked" -> res.setMessage("Tài khoản đã bị khoá");
+            case "Bad credentials" -> res.setMessage("Tài khoản hoặc mật khẩu không đúng");
+            default ->
+                    res.setMessage("Token không hợp lệ (hết hạn, không đúng định dạng, hoặc không truyền JWT ở header)...");
         }
 
         mapper.writeValue(response.getWriter(), res);

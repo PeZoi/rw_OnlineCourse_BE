@@ -34,10 +34,11 @@ public class GlobalException {
     }
 
     //    Khi không tìm thấy user
-    @ExceptionHandler(value = {UsernameNotFoundException.class, BadCredentialsException.class})
+    @ExceptionHandler(value = UsernameNotFoundException.class)
     public ResponseEntity<ResponseDetail<Object>> handleGlobalException(Exception exception) {
-        ResponseDetail<Object> detailResponse = ResponseDetail.builder().status(HttpStatus.BAD_REQUEST.value()).error("Error!").message(exception.getMessage()).build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(detailResponse);
+        ResponseDetail<Object> detailResponse = ResponseDetail.builder().status(HttpStatus.NOT_FOUND.value()).error(
+                "User not found exception").message(exception.getMessage()).build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(detailResponse);
     }
 
     @ExceptionHandler(value = CustomException.class)
