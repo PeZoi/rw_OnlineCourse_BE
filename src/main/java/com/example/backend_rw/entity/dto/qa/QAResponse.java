@@ -34,5 +34,25 @@ public class QAResponse {
     @JsonProperty("parent_id")
     private Integer parentId;
 
+    private CourseQA course;
+
+    private LessonQA lesson;
+
     private List<QAResponse> children = new ArrayList<>();
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class CourseQA {
+        private String name;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class LessonQA {
+        private String name;
+    }
 }

@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 @Transactional
@@ -29,6 +28,7 @@ public class QAServiceImpl implements QAService {
     private final LessonRepository lessonRepository;
     private final QARepository qaRepository;
     private final UserRepository userRepository;
+
     public QAServiceImpl(ModelMapper modelMapper, LessonRepository lessonRepository, QARepository qaRepository, UserRepository userRepository) {
         this.modelMapper = modelMapper;
         this.lessonRepository = lessonRepository;
@@ -38,14 +38,16 @@ public class QAServiceImpl implements QAService {
 
     @Override
     public List<QAResponse> listAll(Integer lessonId) {
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new NotFoundException("Lesson ID không tồn tại"));
+        Lesson lesson = lessonRepository.findById(lessonId).orElseThrow(() -> new NotFoundException("Lesson ID không tồn tại"));
         List<QA> listQAs = qaRepository.findAllByLesson(lesson.getId());
 
-        return listQAs.stream()
-                .sorted(Comparator.comparing(QA::getCreatedAt).reversed())
-                .map(this::convertToQAResponse)
-                .toList();
+        return listQAs.stream().sorted(Comparator.comparing(QA::getCreatedAt).reversed()).map(this::convertToQAResponse).toList();
+    }
+
+    @Override
+    public List<QAResponse> listAllForAdmin() {
+        List<QA> listQAs = qaRepository.findAll();
+        return listQAs.stream().sorted(Comparator.comparing(QA::getCreatedAt).reversed()).map(this::convertToQAResponse1).toList();
     }
 
     @Override
@@ -82,22 +84,40 @@ public class QAServiceImpl implements QAService {
         return "Xóa bình luận (hỏi đáp) thành công!";
     }
 
-    private QAResponse convertToQAResponse(QA qa){
+    //    Dành cho customer
+    private QAResponse convertToQAResponse(QA qa) {
         QAResponse response = modelMapper.map(qa, QAResponse.class);
         response.setLessonId(qa.getLesson().getId());
         response.setUserId(qa.getUser().getId());
         response.setUsername(qa.getUser().getUsername());
         response.setPhotoUser(qa.getUser().getPhoto());
         response.setCreatedAtFormatted(Utils.formatDuration(Duration.between(qa.getCreatedAt(), Instant.now())));
-        if(qa.getParent() != null){
+        if (qa.getParent() != null) {
             response.setParentId(qa.getParent().getId());
         }
 
-        List<QAResponse> childrenResponse = qa.getChildren().stream()
-                .sorted(Comparator.comparing(QA::getCreatedAt).reversed())
-                .map(this::convertToQAResponse)
-                .toList();
+        List<QAResponse> childrenResponse = qa.getChildren().stream().sorted(Comparator.comparing(QA::getCreatedAt).reversed()).map(this::convertToQAResponse).toList();
         response.setChildren(childrenResponse);
+        return response;
+    }
+
+    //    Dành cho admin và assistant
+    private QAResponse convertToQAResponse1(QA qa) {
+        QAResponse.CourseQA course = new QAResponse.CourseQA();
+        course.setName(qa.getLesson().getChapter().getCourse().getTitle());
+
+        QAResponse.LessonQA lesson = new QAResponse.LessonQA();
+        lesson.setName(qa.getLesson().getName());
+
+        QAResponse response = modelMapper.map(qa, QAResponse.class);
+        response.setLessonId(qa.getLesson().getId());
+        response.setUserId(qa.getUser().getId());
+        response.setUsername(qa.getUser().getUsername());
+        response.setPhotoUser(qa.getUser().getPhoto());
+        response.setCreatedAtFormatted(Utils.formatDuration(Duration.between(qa.getCreatedAt(), Instant.now())));
+        response.setCourse(course);
+        response.setLesson(lesson);
+        response.setChildren(null);
         return response;
     }
 }

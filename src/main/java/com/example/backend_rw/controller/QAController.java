@@ -22,6 +22,13 @@ public class QAController {
     public ResponseEntity<?> listAll(@RequestParam(value = "lesson") Integer lessonId){
         return ResponseEntity.ok(qaService.listAll(lessonId));
     }
+
+    @GetMapping("/get-all-list")
+    @ApiMessage("List all questions for admin and assistant")
+    public ResponseEntity<?> listAllForAdmin(){
+        return ResponseEntity.ok(qaService.listAllForAdmin());
+    }
+
     @PostMapping("/create")
     @ApiMessage("Create a question")
     public ResponseEntity<?> create(@RequestBody @Valid QARequest qaRequest){
