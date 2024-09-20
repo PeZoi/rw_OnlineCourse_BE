@@ -1,17 +1,14 @@
-package com.example.backend_rw.entity.dto.dashboard;
+package com.example.backend_rw.entity.dto.report;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CountSummaryResponse {
-
+@Builder
+public class CountReportResponse {
     @JsonProperty("total_users")
     private int totalUsers;
 
