@@ -91,6 +91,7 @@ public class QAServiceImpl implements QAService {
         response.setUserId(qa.getUser().getId());
         response.setUsername(qa.getUser().getUsername());
         response.setPhotoUser(qa.getUser().getPhoto());
+        response.setRoleName(qa.getUser().getRole().getName());
         response.setCreatedAtFormatted(Utils.formatDuration(Duration.between(qa.getCreatedAt(), Instant.now())));
         if (qa.getParent() != null) {
             response.setParentId(qa.getParent().getId());
@@ -112,6 +113,7 @@ public class QAServiceImpl implements QAService {
         QAResponse response = modelMapper.map(qa, QAResponse.class);
         response.setLessonId(qa.getLesson().getId());
         response.setUserId(qa.getUser().getId());
+        response.setRoleName(qa.getUser().getRole().getName());
         response.setUsername(qa.getUser().getUsername());
         response.setPhotoUser(qa.getUser().getPhoto());
         response.setCreatedAtFormatted(Utils.formatDuration(Duration.between(qa.getCreatedAt(), Instant.now())));

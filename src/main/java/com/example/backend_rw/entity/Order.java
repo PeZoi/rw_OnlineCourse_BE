@@ -30,4 +30,11 @@ public class Order {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     private Courses courses;
+
+    // Mục đích để làm tính năng thống kê
+    public Order(String categoryName, int total){
+        this.courses = new Courses();
+        this.courses.setCategory(new Category(categoryName));
+        this.totalPrice = total;
+    }
 }

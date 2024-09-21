@@ -26,4 +26,18 @@ public class ReportController {
     public ResponseEntity<?> getRevenueReport(@PathVariable(value = "period") String period){
         return ResponseEntity.ok().body(reportService.getRevenueReport(period));
     }
+    @GetMapping("/category-income")
+    public ResponseEntity<?> getCategoryIncomeReport(){
+        return ResponseEntity.ok().body(reportService.getCategoryIncomeReport());
+    }
+
+    @GetMapping("/course-income/{period}")
+    public ResponseEntity<?> getCourseIncomeReport(@PathVariable(value = "period") String period){
+        return ResponseEntity.ok().body(reportService.getCourseIncomeReport(period));
+    }
+
+    @GetMapping("/contest-report")
+    public ResponseEntity<?> getContestReport(){
+        return ResponseEntity.ok().body(reportService.getContestReport());
+    }
 }

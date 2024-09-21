@@ -8,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class ReportRevenueResponse {
+public class RevenueReportResponse {
     private String identifier; // Tên của bảng đang thống kê
 
     @JsonProperty("total_income")
@@ -17,11 +17,7 @@ public class ReportRevenueResponse {
     @JsonProperty("order_count")
     private int orderCount;
 
-    public ReportRevenueResponse(String identifier) {
+    public RevenueReportResponse(String identifier) {
         this.identifier = identifier;
-    }
-
-    public void addInCome(int income) {
-        this.totalIncome += income;
     }
 }
